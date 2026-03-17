@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bet Analyzer — AI Powered</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <title>BetMind AI — Powered by Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -13,11 +13,35 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #070711; color: #e0e0ff; font-family: 'Space Mono', monospace; }
     select option { background: #0d0d1a; color: #e0e0ff; }
-    ::-webkit-scrollbar { width: 6px; } 
+    ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0d0d1a; }
     ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 3px; }
     input::placeholder, textarea::placeholder { color: #333; }
-    input:focus, textarea:focus, select:focus { border-color: #4d9eff !important; }
+    input:focus, textarea:focus, select:focus { border-color: #4d9eff !important; outline: none; }
+
+```
+@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 20px #4d9eff44; } 50% { box-shadow: 0 0 40px #4d9eff88; } }
+
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+.spin { animation: spin 1s linear infinite; display: inline-block; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: #000000cc;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 16px;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.modal-box {
+  background: #0d0d1a; border: 1px solid #2a2a4a;
+  border-radius: 16px; padding: 28px; max-width: 380px; width: 100%;
+  animation: fadeIn 0.3s ease;
+}
+```
+
   </style>
 </head>
 <body>
@@ -26,15 +50,15 @@
   <script type="text/babel">
     const { useState } = React;
 
+    // ── CONFIG ── Change YOUR_MOMO_NUMBER to your real MTN MoMo number
+    const MOMO_NUMBER = "0542232899";
+    const PRICE_GHS = 10;
+    const APP_NAME = "BetMind AI";
+    // Valid payment reference codes — share ONE with each customer after they pay
+    const VALID_CODES = ["BM-4831","BM-7263","BM-9104","BM-3357","BM-6892","BM-2048","BM-5571","BM-8830","BM-1195","BM-4462","BM-7039","BM-2984","BM-6617","BM-3305","BM-9743","BM-1822","BM-5590","BM-8014","BM-3671","BM-7458"];
+
     const LEAGUES = ["Premier League", "La Liga", "Serie A", "Bundesliga"];
     const BET_TYPES = ["1X2 (Match Result)", "Over/Under Goals", "BTTS", "Asian Handicap"];
-
-    const GlowDot = ({ color }) => (
-      <span style={{
-        display: "inline-block", width: 8, height: 8, borderRadius: "50%",
-        background: color, boxShadow: `0 0 6px ${color}`, marginRight: 6
-      }} />
-    );
 
     const ConfidenceMeter = ({ value }) => {
       const color = value >= 75 ? "#00ff87" : value >= 55 ? "#ffd700" : "#ff4d6d";
@@ -46,7 +70,8 @@
           </div>
           <div style={{ height: 4, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" }}>
             <div style={{
-              height: "100%", width: `${value}%`, background: `linear-gradient(90deg, ${color}88, ${color})`,
+              height: "100%", width: `${value}%`,
+              background: `linear-gradient(90deg, ${color}88, ${color})`,
               borderRadius: 2, transition: "width 1s ease", boxShadow: `0 0 8px ${color}`
             }} />
           </div>
@@ -62,17 +87,185 @@
       }}>{label}</span>
     );
 
-    function BetAnalyzer() {
+    // ── PAYWALL MODAL ──
+    const PaywallModal = ({ onSuccess, onClose, matchLabel }) => {
+      const [step, setStep] = useState("info"); // info | confirm | verify
+      const [code, setCode] = useState("");
+      const [error, setError] = useState("");
+
+      const handleVerify = () => {
+        if (VALID_CODES.includes(code.trim().toUpperCase())) {
+          onSuccess();
+        } else {
+          setError("Invalid code. Please check your payment reference and try again.");
+        }
+      };
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+            {step === "info" && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 24 }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>⚡</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 900, color: "#e0e0ff" }}>
+                    Run Analysis
+                  </div>
+                  <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>{matchLabel}</div>
+                </div>
+
+                {/* Price tag */}
+                <div style={{
+                  background: "linear-gradient(135deg, #0a1628, #0d1f3c)",
+                  border: "1px solid #4d9eff44", borderRadius: 12, padding: 20,
+                  textAlign: "center", marginBottom: 20
+                }}>
+                  <div style={{ fontSize: 11, color: "#4d9eff", letterSpacing: 2, marginBottom: 6 }}>ONE-TIME PAYMENT</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 900, color: "#fff" }}>
+                    GHS {PRICE_GHS}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>per match analysis</div>
+                </div>
+
+                {/* What you get */}
+                {["AI verdict with confidence score", "Value picks for all 4 bet types", "Key factors & risk rating", "Stake advice from our AI model"].map((f, i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8, fontSize: 12, color: "#aaa" }}>
+                    <span style={{ color: "#00ff87", fontSize: 14 }}>✓</span> {f}
+                  </div>
+                ))}
+
+                <button onClick={() => setStep("confirm")} style={{
+                  width: "100%", marginTop: 20, padding: "14px",
+                  background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
+                  border: "none", borderRadius: 8, color: "#fff",
+                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
+                  letterSpacing: 1.5, cursor: "pointer", textTransform: "uppercase",
+                  animation: "glow 2s infinite"
+                }}>
+                  Pay GHS {PRICE_GHS} via MoMo →
+                </button>
+                <button onClick={onClose} style={{
+                  width: "100%", marginTop: 10, padding: "10px",
+                  background: "transparent", border: "none", color: "#444",
+                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
+                }}>Cancel</button>
+              </>
+            )}
+
+            {step === "confirm" && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 20 }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📲</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 900 }}>Send MoMo Payment</div>
+                </div>
+
+                <div style={{
+                  background: "#111", border: "1px solid #2a2a4a",
+                  borderRadius: 10, padding: 16, marginBottom: 16
+                }}>
+                  <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>SEND TO</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: "#4d9eff", letterSpacing: 2 }}>
+                    {MOMO_NUMBER}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>MTN Mobile Money</div>
+                </div>
+
+                <div style={{
+                  background: "#111", border: "1px solid #2a2a4a",
+                  borderRadius: 10, padding: 16, marginBottom: 20
+                }}>
+                  <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>AMOUNT</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 900, color: "#00ff87" }}>
+                    GHS {PRICE_GHS}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 20, padding: "12px", background: "#0a0a14", borderRadius: 8 }}>
+                  📌 After payment, send a screenshot to WhatsApp and you'll receive your <strong style={{color: "#e0e0ff"}}>access code</strong> within minutes.
+                </div>
+
+                <button onClick={() => setStep("verify")} style={{
+                  width: "100%", padding: "14px",
+                  background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
+                  border: "none", borderRadius: 8, color: "#fff",
+                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
+                  letterSpacing: 1.5, cursor: "pointer", textTransform: "uppercase"
+                }}>
+                  I've Paid — Enter Code →
+                </button>
+                <button onClick={() => setStep("info")} style={{
+                  width: "100%", marginTop: 10, padding: "10px",
+                  background: "transparent", border: "none", color: "#444",
+                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
+                }}>← Back</button>
+              </>
+            )}
+
+            {step === "verify" && (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 20 }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>🔑</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 900 }}>Enter Access Code</div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 6 }}>You received this after payment</div>
+                </div>
+
+                <input
+                  value={code}
+                  onChange={e => { setCode(e.target.value); setError(""); }}
+                  placeholder="e.g. BM-2024"
+                  style={{
+                    width: "100%", background: "#111", border: "1px solid #2a2a4a",
+                    borderRadius: 8, color: "#e0e0ff", padding: "14px 16px",
+                    fontSize: 16, fontFamily: "'Space Mono', monospace",
+                    textAlign: "center", letterSpacing: 3, textTransform: "uppercase",
+                    marginBottom: 12
+                  }}
+                  onKeyDown={e => e.key === "Enter" && handleVerify()}
+                />
+
+                {error && (
+                  <div style={{
+                    background: "#ff4d6d22", border: "1px solid #ff4d6d44",
+                    borderRadius: 6, padding: "10px 12px", color: "#ff4d6d",
+                    fontSize: 11, marginBottom: 12, textAlign: "center"
+                  }}>{error}</div>
+                )}
+
+                <button onClick={handleVerify} style={{
+                  width: "100%", padding: "14px",
+                  background: code ? "linear-gradient(135deg, #1a3a8f, #4d9eff)" : "#1a1a2e",
+                  border: "none", borderRadius: 8, color: code ? "#fff" : "#444",
+                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
+                  letterSpacing: 1.5, cursor: code ? "pointer" : "default",
+                  textTransform: "uppercase", transition: "all 0.3s"
+                }}>
+                  Unlock Analysis ✓
+                </button>
+                <button onClick={() => setStep("confirm")} style={{
+                  width: "100%", marginTop: 10, padding: "10px",
+                  background: "transparent", border: "none", color: "#444",
+                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
+                }}>← Back</button>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ── MAIN APP ──
+    function BetMindAI() {
       const [form, setForm] = useState({
         league: "", homeTeam: "", awayTeam: "", homeForm: "",
         awayForm: "", homePosition: "", awayPosition: "",
         homeGoalsFor: "", homeGoalsAgainst: "", awayGoalsFor: "", awayGoalsAgainst: "",
-        h2h: "", odds1: "", oddsX: "", odds2: "", betTypes: [],
-        extraContext: ""
+        h2h: "", odds1: "", oddsX: "", odds2: "", betTypes: [], extraContext: ""
       });
       const [result, setResult] = useState(null);
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState("");
+      const [showPaywall, setShowPaywall] = useState(false);
 
       const toggleBetType = (bt) => {
         setForm(f => ({
@@ -82,12 +275,17 @@
         }));
       };
 
-      const analyze = async () => {
+      const handleAnalyzeClick = () => {
         if (!form.homeTeam || !form.awayTeam || !form.league) {
           setError("Please enter league, home team, and away team at minimum.");
           return;
         }
         setError("");
+        setShowPaywall(true);
+      };
+
+      const runAnalysis = async () => {
+        setShowPaywall(false);
         setLoading(true);
         setResult(null);
 
@@ -115,7 +313,7 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
   "bets": [
     {
       "type": "bet type name",
-      "pick": "specific pick e.g. Home Win / Over 2.5 / BTTS Yes",
+      "pick": "specific pick",
       "confidence": 72,
       "odds": "recommended minimum odds",
       "reasoning": "2-3 sentence reasoning",
@@ -124,7 +322,7 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
   ],
   "keyFactors": ["factor 1", "factor 2", "factor 3"],
   "riskLevel": "LOW or MEDIUM or HIGH",
-  "stakeAdvice": "e.g. 2 units or avoid or 1 unit"
+  "stakeAdvice": "e.g. 2 units"
 }`;
 
         try {
@@ -140,70 +338,83 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
           const data = await response.json();
           const text = data.content?.map(i => i.text || "").join("") || "";
           const clean = text.replace(/```json|```/g, "").trim();
-          const parsed = JSON.parse(clean);
-          setResult(parsed);
+          setResult(JSON.parse(clean));
         } catch (e) {
-          setError("Analysis failed. Check your inputs and try again.");
+          setError("Analysis failed. Please try again.");
         }
         setLoading(false);
       };
 
-      const verdictColor = {
-        HOME_WIN: "#00ff87", DRAW: "#ffd700", AWAY_WIN: "#4d9eff", AVOID: "#ff4d6d"
-      };
+      const verdictColor = { HOME_WIN: "#00ff87", DRAW: "#ffd700", AWAY_WIN: "#4d9eff", AVOID: "#ff4d6d" };
       const riskColor = { LOW: "#00ff87", MEDIUM: "#ffd700", HIGH: "#ff4d6d" };
       const valueColor = { HIGH: "#00ff87", MEDIUM: "#ffd700", LOW: "#aaa" };
 
       const inputStyle = {
         background: "#0d0d1a", border: "1px solid #2a2a4a", borderRadius: 6,
         color: "#e0e0ff", padding: "9px 12px", fontSize: 13,
-        fontFamily: "'Space Mono', monospace", outline: "none", width: "100%",
-        transition: "border 0.2s"
+        fontFamily: "'Space Mono', monospace", width: "100%", transition: "border 0.2s"
       };
-
       const labelStyle = {
-        fontSize: 10, color: "#666", letterSpacing: 1.5, textTransform: "uppercase",
+        fontSize: 10, color: "#555", letterSpacing: 1.5, textTransform: "uppercase",
         fontFamily: "'Space Mono', monospace", display: "block", marginBottom: 5
       };
+      const sectionTitle = (color) => ({
+        fontSize: 10, color, letterSpacing: 2, textTransform: "uppercase",
+        fontFamily: "'Space Mono', monospace", marginBottom: 12,
+        display: "flex", alignItems: "center", gap: 8
+      });
+      const card = { background: "#0d0d1a", border: "1px solid #1a1a3a", borderRadius: 10, padding: 20, marginBottom: 16 };
 
-      const sectionTitle = {
-        fontSize: 10, color: "#4d9eff", letterSpacing: 2, textTransform: "uppercase",
-        fontFamily: "'Space Mono', monospace", marginBottom: 12, display: "flex",
-        alignItems: "center", gap: 8
-      };
-
-      const card = {
-        background: "#0d0d1a", border: "1px solid #1a1a3a",
-        borderRadius: 10, padding: 20, marginBottom: 16
-      };
+      const matchLabel = form.homeTeam && form.awayTeam
+        ? `${form.homeTeam} vs ${form.awayTeam}`
+        : "Match Analysis";
 
       return (
-        <div style={{
-          minHeight: "100vh", background: "#070711",
-          fontFamily: "'Space Mono', monospace", color: "#e0e0ff", padding: "24px 16px"
-        }}>
+        <div style={{ minHeight: "100vh", background: "#070711", padding: "24px 16px" }}>
+
+          {showPaywall && (
+            <PaywallModal
+              matchLabel={matchLabel}
+              onSuccess={runAnalysis}
+              onClose={() => setShowPaywall(false)}
+            />
+          )}
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ fontSize: 11, color: "#4d9eff", letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>
-              <GlowDot color="#4d9eff" />AI POWERED
-            </div>
+            {/* Logo mark */}
+            <div style={{
+              width: 52, height: 52, borderRadius: 14,
+              background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 12px", boxShadow: "0 0 24px #4d9eff44",
+              fontSize: 22
+            }}>🧠</div>
             <h1 style={{
-              fontFamily: "'Syne', sans-serif", fontSize: 34, fontWeight: 800,
-              margin: 0, background: "linear-gradient(135deg, #e0e0ff 30%, #4d9eff)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-            }}>BET ANALYZER</h1>
-            <p style={{ color: "#555", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
-              STATISTICAL · TACTICAL · VALUE-DRIVEN
+              fontFamily: "'Syne', sans-serif", fontSize: 32, fontWeight: 900, margin: 0,
+              background: "linear-gradient(135deg, #ffffff 20%, #4d9eff)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              letterSpacing: -0.5
+            }}>BetMind AI</h1>
+            <p style={{ color: "#444", fontSize: 11, marginTop: 6, letterSpacing: 2 }}>
+              INTELLIGENCE · PRECISION · EDGE
             </p>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10,
+              background: "#00ff8711", border: "1px solid #00ff8722",
+              borderRadius: 20, padding: "4px 12px"
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00ff87", boxShadow: "0 0 6px #00ff87" }} />
+              <span style={{ fontSize: 10, color: "#00ff87", letterSpacing: 1 }}>AI POWERED</span>
+            </div>
           </div>
 
           <div style={{ maxWidth: 640, margin: "0 auto" }}>
 
             {/* Match Details */}
-            <div style={card}>
-              <div style={sectionTitle}>
-                <span style={{ width: 2, height: 14, background: "#4d9eff", display: "inline-block" }} />
+            <div style={card} className="fade-in">
+              <div style={sectionTitle("#4d9eff")}>
+                <span style={{ width: 2, height: 14, background: "#4d9eff", display: "inline-block", borderRadius: 2 }} />
                 Match Details
               </div>
               <div style={{ marginBottom: 14 }}>
@@ -230,31 +441,23 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
 
             {/* Form & Stats */}
             <div style={card}>
-              <div style={sectionTitle}>
-                <span style={{ width: 2, height: 14, background: "#00ff87", display: "inline-block" }} />
+              <div style={sectionTitle("#00ff87")}>
+                <span style={{ width: 2, height: 14, background: "#00ff87", display: "inline-block", borderRadius: 2 }} />
                 Form & Statistics
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-                <div>
-                  <label style={labelStyle}>Home Form (last 5)</label>
-                  <input style={inputStyle} placeholder="e.g. W W D L W" value={form.homeForm}
-                    onChange={e => setForm(f => ({ ...f, homeForm: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Away Form (last 5)</label>
-                  <input style={inputStyle} placeholder="e.g. L W W D L" value={form.awayForm}
-                    onChange={e => setForm(f => ({ ...f, awayForm: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Home League Position</label>
-                  <input style={inputStyle} placeholder="e.g. 3rd" value={form.homePosition}
-                    onChange={e => setForm(f => ({ ...f, homePosition: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Away League Position</label>
-                  <input style={inputStyle} placeholder="e.g. 11th" value={form.awayPosition}
-                    onChange={e => setForm(f => ({ ...f, awayPosition: e.target.value }))} />
-                </div>
+                {[
+                  ["Home Form (last 5)", "homeForm", "e.g. W W D L W"],
+                  ["Away Form (last 5)", "awayForm", "e.g. L W W D L"],
+                  ["Home League Position", "homePosition", "e.g. 3rd"],
+                  ["Away League Position", "awayPosition", "e.g. 11th"],
+                ].map(([label, key, ph]) => (
+                  <div key={key}>
+                    <label style={labelStyle}>{label}</label>
+                    <input style={inputStyle} placeholder={ph} value={form[key]}
+                      onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+                  </div>
+                ))}
                 <div>
                   <label style={labelStyle}>Home GF / GA</label>
                   <div style={{ display: "flex", gap: 6 }}>
@@ -283,43 +486,35 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
 
             {/* Odds */}
             <div style={card}>
-              <div style={sectionTitle}>
-                <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block" }} />
+              <div style={sectionTitle("#ffd700")}>
+                <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block", borderRadius: 2 }} />
                 Market Odds
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={labelStyle}>Home Win (1)</label>
-                  <input style={inputStyle} placeholder="e.g. 1.85" value={form.odds1}
-                    onChange={e => setForm(f => ({ ...f, odds1: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Draw (X)</label>
-                  <input style={inputStyle} placeholder="e.g. 3.40" value={form.oddsX}
-                    onChange={e => setForm(f => ({ ...f, oddsX: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Away Win (2)</label>
-                  <input style={inputStyle} placeholder="e.g. 4.20" value={form.odds2}
-                    onChange={e => setForm(f => ({ ...f, odds2: e.target.value }))} />
-                </div>
+                {[["Home Win (1)", "odds1", "1.85"], ["Draw (X)", "oddsX", "3.40"], ["Away Win (2)", "odds2", "4.20"]].map(([label, key, ph]) => (
+                  <div key={key}>
+                    <label style={labelStyle}>{label}</label>
+                    <input style={inputStyle} placeholder={ph} value={form[key]}
+                      onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Bet Types */}
             <div style={card}>
-              <div style={sectionTitle}>
-                <span style={{ width: 2, height: 14, background: "#ff4d6d", display: "inline-block" }} />
-                Bet Types to Analyze
+              <div style={sectionTitle("#ff4d6d")}>
+                <span style={{ width: 2, height: 14, background: "#ff4d6d", display: "inline-block", borderRadius: 2 }} />
+                Bet Types
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {BET_TYPES.map(bt => (
                   <button key={bt} onClick={() => toggleBetType(bt)} style={{
                     background: form.betTypes.includes(bt) ? "#4d9eff22" : "#111",
-                    border: form.betTypes.includes(bt) ? "1px solid #4d9eff" : "1px solid #222",
-                    color: form.betTypes.includes(bt) ? "#4d9eff" : "#666",
+                    border: form.betTypes.includes(bt) ? "1px solid #4d9eff" : "1px solid #1a1a2e",
+                    color: form.betTypes.includes(bt) ? "#4d9eff" : "#555",
                     padding: "7px 12px", borderRadius: 5, fontSize: 11, cursor: "pointer",
-                    fontFamily: "'Space Mono', monospace", letterSpacing: 0.5, transition: "all 0.2s"
+                    fontFamily: "'Space Mono', monospace", transition: "all 0.2s"
                   }}>{bt}</button>
                 ))}
               </div>
@@ -327,7 +522,7 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
 
             {/* Extra Context */}
             <div style={card}>
-              <label style={labelStyle}>Extra Context (injuries, weather, motivation, etc.)</label>
+              <label style={labelStyle}>Extra Context (injuries, weather, motivation...)</label>
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical", display: "block" }}
                 placeholder="e.g. Home striker injured, away team needs win for top 4..."
                 value={form.extraContext}
@@ -336,51 +531,54 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
 
             {error && (
               <div style={{
-                background: "#ff4d6d22", border: "1px solid #ff4d6d44", borderRadius: 8,
-                padding: "12px 16px", color: "#ff4d6d", fontSize: 12, marginBottom: 16
+                background: "#ff4d6d22", border: "1px solid #ff4d6d44",
+                borderRadius: 8, padding: "12px 16px", color: "#ff4d6d",
+                fontSize: 12, marginBottom: 16
               }}>{error}</div>
             )}
 
-            {/* Analyze Button */}
-            <button onClick={analyze} disabled={loading} style={{
-              width: "100%", padding: "14px",
+            {/* CTA Button */}
+            <button onClick={handleAnalyzeClick} disabled={loading} style={{
+              width: "100%", padding: "16px",
               background: loading ? "#111" : "linear-gradient(135deg, #1a3a8f, #4d9eff)",
-              border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700,
-              fontFamily: "'Space Mono', monospace", letterSpacing: 2, cursor: loading ? "default" : "pointer",
+              border: loading ? "1px solid #1a1a2e" : "none",
+              borderRadius: 10, color: loading ? "#444" : "#fff",
+              fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
+              letterSpacing: 2, cursor: loading ? "default" : "pointer",
               textTransform: "uppercase", transition: "all 0.3s",
-              boxShadow: loading ? "none" : "0 0 20px #4d9eff44"
+              boxShadow: loading ? "none" : "0 0 30px #4d9eff33"
             }}>
-              {loading ? "⟳  ANALYZING..." : "▶  RUN ANALYSIS"}
+              {loading
+                ? <span><span className="spin">⟳</span>  ANALYZING MATCH...</span>
+                : "🧠  ANALYZE FOR GHS 10"}
             </button>
 
             {/* Results */}
             {result && (
-              <div style={{ marginTop: 24 }}>
+              <div style={{ marginTop: 24 }} className="fade-in">
 
-                {/* Verdict Card */}
+                {/* Verdict */}
                 <div style={{
                   background: "linear-gradient(135deg, #0d0d1a, #0a1628)",
-                  border: "1px solid #1a2a4a", borderRadius: 10, padding: 20, marginBottom: 14
+                  border: `1px solid ${verdictColor[result.verdict] || "#1a2a4a"}44`,
+                  borderRadius: 12, padding: 22, marginBottom: 14
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, marginBottom: 4 }}>{form.league.toUpperCase()}</div>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800 }}>
-                        {form.homeTeam} <span style={{ color: "#333" }}>vs</span> {form.awayTeam}
+                      <div style={{ fontSize: 10, color: "#444", letterSpacing: 1.5, marginBottom: 4 }}>{form.league.toUpperCase()}</div>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 900 }}>
+                        {form.homeTeam} <span style={{ color: "#222" }}>vs</span> {form.awayTeam}
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>VERDICT</div>
+                      <div style={{ fontSize: 10, color: "#444", marginBottom: 4 }}>AI VERDICT</div>
                       <div style={{
-                        fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 800,
+                        fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 900,
                         color: verdictColor[result.verdict] || "#fff"
                       }}>{result.verdict?.replace(/_/g, " ")}</div>
                     </div>
                   </div>
-                  <div style={{
-                    marginTop: 14, padding: "12px", background: "#07071180",
-                    borderRadius: 6, fontSize: 12, color: "#aaa", lineHeight: 1.7
-                  }}>
+                  <div style={{ marginTop: 16, padding: 14, background: "#07071180", borderRadius: 8, fontSize: 12, color: "#999", lineHeight: 1.8 }}>
                     {result.summary}
                   </div>
                   <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -392,13 +590,13 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
                 {/* Key Factors */}
                 {result.keyFactors?.length > 0 && (
                   <div style={card}>
-                    <div style={sectionTitle}>
-                      <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block" }} />
+                    <div style={sectionTitle("#ffd700")}>
+                      <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block", borderRadius: 2 }} />
                       Key Factors
                     </div>
                     {result.keyFactors.map((f, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6, fontSize: 12, color: "#bbb" }}>
-                        <span style={{ color: "#ffd700", marginTop: 1 }}>→</span> {f}
+                      <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, fontSize: 12, color: "#bbb" }}>
+                        <span style={{ color: "#ffd700" }}>→</span> {f}
                       </div>
                     ))}
                   </div>
@@ -406,37 +604,50 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
 
                 {/* Bet Cards */}
                 {result.bets?.map((bet, i) => (
-                  <div key={i} style={{
-                    background: "#0d0d1a", border: `1px solid ${valueColor[bet.value]}44`,
-                    borderRadius: 10, padding: 18, marginBottom: 12
+                  <div key={i} className="fade-in" style={{
+                    background: "#0d0d1a",
+                    border: `1px solid ${valueColor[bet.value]}33`,
+                    borderRadius: 12, padding: 20, marginBottom: 12
                   }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
                       <div>
-                        <div style={{ fontSize: 10, color: "#555", letterSpacing: 1, marginBottom: 3 }}>{bet.type?.toUpperCase()}</div>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 800, color: "#e0e0ff" }}>{bet.pick}</div>
+                        <div style={{ fontSize: 10, color: "#444", letterSpacing: 1, marginBottom: 3 }}>{bet.type?.toUpperCase()}</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 900, color: "#e0e0ff" }}>{bet.pick}</div>
                       </div>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <Badge label={`Value: ${bet.value}`} color={valueColor[bet.value] + "22"} textColor={valueColor[bet.value]} />
-                        {bet.odds && <Badge label={`Min: ${bet.odds}`} color="#222" textColor="#888" />}
+                      <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                        <Badge label={`${bet.value} VALUE`} color={valueColor[bet.value] + "22"} textColor={valueColor[bet.value]} />
+                        {bet.odds && <Badge label={`Min ${bet.odds}`} color="#111" textColor="#555" />}
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 10 }}>{bet.reasoning}</div>
+                    <div style={{ fontSize: 12, color: "#777", lineHeight: 1.8, marginBottom: 10 }}>{bet.reasoning}</div>
                     <ConfidenceMeter value={bet.confidence} />
                   </div>
                 ))}
+
+                {/* Powered by */}
+                <div style={{ textAlign: "center", marginTop: 20, marginBottom: 8 }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    background: "#0d0d1a", border: "1px solid #1a1a2e",
+                    borderRadius: 20, padding: "6px 14px"
+                  }}>
+                    <span style={{ fontSize: 12 }}>🧠</span>
+                    <span style={{ fontSize: 10, color: "#333", letterSpacing: 1 }}>POWERED BY BETMIND AI</span>
+                  </div>
+                </div>
               </div>
             )}
 
-            <div style={{ textAlign: "center", marginTop: 32, marginBottom: 16, fontSize: 10, color: "#333", lineHeight: 1.8 }}>
+            <div style={{ textAlign: "center", marginTop: 28, marginBottom: 16, fontSize: 10, color: "#222", lineHeight: 2 }}>
               FOR ANALYTICAL PURPOSES ONLY · BET RESPONSIBLY<br />
-              PAST ANALYSIS DOES NOT GUARANTEE FUTURE RESULTS
+              © 2024 BETMIND AI · ALL RIGHTS RESERVED
             </div>
           </div>
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<BetAnalyzer />);
+    ReactDOM.createRoot(document.getElementById("root")).render(<BetMindAI />);
   </script>
 
 </body>
