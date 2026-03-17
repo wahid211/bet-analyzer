@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bet Analyzer — AI Powered</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #070711; color: #e0e0ff; font-family: 'Space Mono', monospace; }
+    select option { background: #0d0d1a; color: #e0e0ff; }
+    ::-webkit-scrollbar { width: 6px; } 
+    ::-webkit-scrollbar-track { background: #0d0d1a; }
+    ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 3px; }
+    input::placeholder, textarea::placeholder { color: #333; }
+    input:focus, textarea:focus, select:focus { border-color: #4d9eff !important; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const LEAGUES = ["Premier League", "La Liga", "Serie A", "Bundesliga"];
+    const BET_TYPES = ["1X2 (Match Result)", "Over/Under Goals", "BTTS", "Asian Handicap"];
+
+    const GlowDot = ({ color }) => (
+      <span style={{
+        display: "inline-block", width: 8, height: 8, borderRadius: "50%",
+        background: color, boxShadow: `0 0 6px ${color}`, marginRight: 6
+      }} />
+    );
+
+    const ConfidenceMeter = ({ value }) => {
+      const color = value >= 75 ? "#00ff87" : value >= 55 ? "#ffd700" : "#ff4d6d";
+      return (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: "#888", letterSpacing: 1, textTransform: "uppercase" }}>Confidence</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "'Space Mono', monospace" }}>{value}%</span>
+          </div>
+          <div style={{ height: 4, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{
+              height: "100%", width: `${value}%`, background: `linear-gradient(90deg, ${color}88, ${color})`,
+              borderRadius: 2, transition: "width 1s ease", boxShadow: `0 0 8px ${color}`
+            }} />
+          </div>
+        </div>
+      );
+    };
+
+    const Badge = ({ label, color = "#333", textColor = "#fff" }) => (
+      <span style={{
+        background: color, color: textColor, fontSize: 10, fontWeight: 700,
+        padding: "3px 8px", borderRadius: 3, letterSpacing: 1.2,
+        textTransform: "uppercase", fontFamily: "'Space Mono', monospace"
+      }}>{label}</span>
+    );
+
+    function BetAnalyzer() {
+      const [form, setForm] = useState({
+        league: "", homeTeam: "", awayTeam: "", homeForm: "",
+        awayForm: "", homePosition: "", awayPosition: "",
+        homeGoalsFor: "", homeGoalsAgainst: "", awayGoalsFor: "", awayGoalsAgainst: "",
+        h2h: "", odds1: "", oddsX: "", odds2: "", betTypes: [],
+        extraContext: ""
+      });
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState("");
+
+      const toggleBetType = (bt) => {
+        setForm(f => ({
+          ...f, betTypes: f.betTypes.includes(bt)
+            ? f.betTypes.filter(x => x !== bt)
+            : [...f.betTypes, bt]
+        }));
+      };
+
+      const analyze = async () => {
+        if (!form.homeTeam || !form.awayTeam || !form.league) {
+          setError("Please enter league, home team, and away team at minimum.");
+          return;
+        }
+        setError("");
+        setLoading(true);
+        setResult(null);
+
+        const prompt = `You are an elite football betting analyst with deep knowledge of statistics, form, and value betting.
+
+Analyze this match and provide structured betting recommendations:
+
+**Match:** ${form.homeTeam} vs ${form.awayTeam}
+**League:** ${form.league}
+**Home Form (last 5):** ${form.homeForm || "Not provided"}
+**Away Form (last 5):** ${form.awayForm || "Not provided"}
+**League Position - Home:** ${form.homePosition || "N/A"} | Away: ${form.awayPosition || "N/A"}
+**Goals For/Against - Home:** ${form.homeGoalsFor || "?"} scored / ${form.homeGoalsAgainst || "?"} conceded
+**Goals For/Against - Away:** ${form.awayGoalsFor || "?"} scored / ${form.awayGoalsAgainst || "?"} conceded
+**H2H Notes:** ${form.h2h || "Not provided"}
+**Odds:** Home Win: ${form.odds1 || "N/A"} | Draw: ${form.oddsX || "N/A"} | Away Win: ${form.odds2 || "N/A"}
+**Bet Types to Analyze:** ${form.betTypes.length ? form.betTypes.join(", ") : "All types"}
+**Extra Context:** ${form.extraContext || "None"}
+
+Respond ONLY in this exact JSON format (no markdown, no extra text):
+{
+  "summary": "2-3 sentence tactical match summary",
+  "verdict": "HOME_WIN or DRAW or AWAY_WIN or AVOID",
+  "verdictReason": "Short sharp reason for verdict",
+  "bets": [
+    {
+      "type": "bet type name",
+      "pick": "specific pick e.g. Home Win / Over 2.5 / BTTS Yes",
+      "confidence": 72,
+      "odds": "recommended minimum odds",
+      "reasoning": "2-3 sentence reasoning",
+      "value": "HIGH or MEDIUM or LOW"
+    }
+  ],
+  "keyFactors": ["factor 1", "factor 2", "factor 3"],
+  "riskLevel": "LOW or MEDIUM or HIGH",
+  "stakeAdvice": "e.g. 2 units or avoid or 1 unit"
+}`;
+
+        try {
+          const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-20250514",
+              max_tokens: 1000,
+              messages: [{ role: "user", content: prompt }]
+            })
+          });
+          const data = await response.json();
+          const text = data.content?.map(i => i.text || "").join("") || "";
+          const clean = text.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(clean);
+          setResult(parsed);
+        } catch (e) {
+          setError("Analysis failed. Check your inputs and try again.");
+        }
+        setLoading(false);
+      };
+
+      const verdictColor = {
+        HOME_WIN: "#00ff87", DRAW: "#ffd700", AWAY_WIN: "#4d9eff", AVOID: "#ff4d6d"
+      };
+      const riskColor = { LOW: "#00ff87", MEDIUM: "#ffd700", HIGH: "#ff4d6d" };
+      const valueColor = { HIGH: "#00ff87", MEDIUM: "#ffd700", LOW: "#aaa" };
+
+      const inputStyle = {
+        background: "#0d0d1a", border: "1px solid #2a2a4a", borderRadius: 6,
+        color: "#e0e0ff", padding: "9px 12px", fontSize: 13,
+        fontFamily: "'Space Mono', monospace", outline: "none", width: "100%",
+        transition: "border 0.2s"
+      };
+
+      const labelStyle = {
+        fontSize: 10, color: "#666", letterSpacing: 1.5, textTransform: "uppercase",
+        fontFamily: "'Space Mono', monospace", display: "block", marginBottom: 5
+      };
+
+      const sectionTitle = {
+        fontSize: 10, color: "#4d9eff", letterSpacing: 2, textTransform: "uppercase",
+        fontFamily: "'Space Mono', monospace", marginBottom: 12, display: "flex",
+        alignItems: "center", gap: 8
+      };
+
+      const card = {
+        background: "#0d0d1a", border: "1px solid #1a1a3a",
+        borderRadius: 10, padding: 20, marginBottom: 16
+      };
+
+      return (
+        <div style={{
+          minHeight: "100vh", background: "#070711",
+          fontFamily: "'Space Mono', monospace", color: "#e0e0ff", padding: "24px 16px"
+        }}>
+
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ fontSize: 11, color: "#4d9eff", letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>
+              <GlowDot color="#4d9eff" />AI POWERED
+            </div>
+            <h1 style={{
+              fontFamily: "'Syne', sans-serif", fontSize: 34, fontWeight: 800,
+              margin: 0, background: "linear-gradient(135deg, #e0e0ff 30%, #4d9eff)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+            }}>BET ANALYZER</h1>
+            <p style={{ color: "#555", fontSize: 11, marginTop: 6, letterSpacing: 1 }}>
+              STATISTICAL · TACTICAL · VALUE-DRIVEN
+            </p>
+          </div>
+
+          <div style={{ maxWidth: 640, margin: "0 auto" }}>
+
+            {/* Match Details */}
+            <div style={card}>
+              <div style={sectionTitle}>
+                <span style={{ width: 2, height: 14, background: "#4d9eff", display: "inline-block" }} />
+                Match Details
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>League</label>
+                <select value={form.league} onChange={e => setForm(f => ({ ...f, league: e.target.value }))}
+                  style={{ ...inputStyle, cursor: "pointer" }}>
+                  <option value="">Select league...</option>
+                  {LEAGUES.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Home Team</label>
+                  <input style={inputStyle} placeholder="e.g. Arsenal" value={form.homeTeam}
+                    onChange={e => setForm(f => ({ ...f, homeTeam: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Away Team</label>
+                  <input style={inputStyle} placeholder="e.g. Chelsea" value={form.awayTeam}
+                    onChange={e => setForm(f => ({ ...f, awayTeam: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            {/* Form & Stats */}
+            <div style={card}>
+              <div style={sectionTitle}>
+                <span style={{ width: 2, height: 14, background: "#00ff87", display: "inline-block" }} />
+                Form & Statistics
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={labelStyle}>Home Form (last 5)</label>
+                  <input style={inputStyle} placeholder="e.g. W W D L W" value={form.homeForm}
+                    onChange={e => setForm(f => ({ ...f, homeForm: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Away Form (last 5)</label>
+                  <input style={inputStyle} placeholder="e.g. L W W D L" value={form.awayForm}
+                    onChange={e => setForm(f => ({ ...f, awayForm: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Home League Position</label>
+                  <input style={inputStyle} placeholder="e.g. 3rd" value={form.homePosition}
+                    onChange={e => setForm(f => ({ ...f, homePosition: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Away League Position</label>
+                  <input style={inputStyle} placeholder="e.g. 11th" value={form.awayPosition}
+                    onChange={e => setForm(f => ({ ...f, awayPosition: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Home GF / GA</label>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <input style={inputStyle} placeholder="GF" value={form.homeGoalsFor}
+                      onChange={e => setForm(f => ({ ...f, homeGoalsFor: e.target.value }))} />
+                    <input style={inputStyle} placeholder="GA" value={form.homeGoalsAgainst}
+                      onChange={e => setForm(f => ({ ...f, homeGoalsAgainst: e.target.value }))} />
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Away GF / GA</label>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <input style={inputStyle} placeholder="GF" value={form.awayGoalsFor}
+                      onChange={e => setForm(f => ({ ...f, awayGoalsFor: e.target.value }))} />
+                    <input style={inputStyle} placeholder="GA" value={form.awayGoalsAgainst}
+                      onChange={e => setForm(f => ({ ...f, awayGoalsAgainst: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>H2H Notes</label>
+                <input style={inputStyle} placeholder="e.g. Home won last 3, avg 2.8 goals" value={form.h2h}
+                  onChange={e => setForm(f => ({ ...f, h2h: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Odds */}
+            <div style={card}>
+              <div style={sectionTitle}>
+                <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block" }} />
+                Market Odds
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Home Win (1)</label>
+                  <input style={inputStyle} placeholder="e.g. 1.85" value={form.odds1}
+                    onChange={e => setForm(f => ({ ...f, odds1: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Draw (X)</label>
+                  <input style={inputStyle} placeholder="e.g. 3.40" value={form.oddsX}
+                    onChange={e => setForm(f => ({ ...f, oddsX: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Away Win (2)</label>
+                  <input style={inputStyle} placeholder="e.g. 4.20" value={form.odds2}
+                    onChange={e => setForm(f => ({ ...f, odds2: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            {/* Bet Types */}
+            <div style={card}>
+              <div style={sectionTitle}>
+                <span style={{ width: 2, height: 14, background: "#ff4d6d", display: "inline-block" }} />
+                Bet Types to Analyze
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {BET_TYPES.map(bt => (
+                  <button key={bt} onClick={() => toggleBetType(bt)} style={{
+                    background: form.betTypes.includes(bt) ? "#4d9eff22" : "#111",
+                    border: form.betTypes.includes(bt) ? "1px solid #4d9eff" : "1px solid #222",
+                    color: form.betTypes.includes(bt) ? "#4d9eff" : "#666",
+                    padding: "7px 12px", borderRadius: 5, fontSize: 11, cursor: "pointer",
+                    fontFamily: "'Space Mono', monospace", letterSpacing: 0.5, transition: "all 0.2s"
+                  }}>{bt}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Extra Context */}
+            <div style={card}>
+              <label style={labelStyle}>Extra Context (injuries, weather, motivation, etc.)</label>
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical", display: "block" }}
+                placeholder="e.g. Home striker injured, away team needs win for top 4..."
+                value={form.extraContext}
+                onChange={e => setForm(f => ({ ...f, extraContext: e.target.value }))} />
+            </div>
+
+            {error && (
+              <div style={{
+                background: "#ff4d6d22", border: "1px solid #ff4d6d44", borderRadius: 8,
+                padding: "12px 16px", color: "#ff4d6d", fontSize: 12, marginBottom: 16
+              }}>{error}</div>
+            )}
+
+            {/* Analyze Button */}
+            <button onClick={analyze} disabled={loading} style={{
+              width: "100%", padding: "14px",
+              background: loading ? "#111" : "linear-gradient(135deg, #1a3a8f, #4d9eff)",
+              border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700,
+              fontFamily: "'Space Mono', monospace", letterSpacing: 2, cursor: loading ? "default" : "pointer",
+              textTransform: "uppercase", transition: "all 0.3s",
+              boxShadow: loading ? "none" : "0 0 20px #4d9eff44"
+            }}>
+              {loading ? "⟳  ANALYZING..." : "▶  RUN ANALYSIS"}
+            </button>
+
+            {/* Results */}
+            {result && (
+              <div style={{ marginTop: 24 }}>
+
+                {/* Verdict Card */}
+                <div style={{
+                  background: "linear-gradient(135deg, #0d0d1a, #0a1628)",
+                  border: "1px solid #1a2a4a", borderRadius: 10, padding: 20, marginBottom: 14
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, marginBottom: 4 }}>{form.league.toUpperCase()}</div>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800 }}>
+                        {form.homeTeam} <span style={{ color: "#333" }}>vs</span> {form.awayTeam}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>VERDICT</div>
+                      <div style={{
+                        fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 800,
+                        color: verdictColor[result.verdict] || "#fff"
+                      }}>{result.verdict?.replace(/_/g, " ")}</div>
+                    </div>
+                  </div>
+                  <div style={{
+                    marginTop: 14, padding: "12px", background: "#07071180",
+                    borderRadius: 6, fontSize: 12, color: "#aaa", lineHeight: 1.7
+                  }}>
+                    {result.summary}
+                  </div>
+                  <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Badge label={`Risk: ${result.riskLevel}`} color={riskColor[result.riskLevel] + "22"} textColor={riskColor[result.riskLevel]} />
+                    <Badge label={`Stake: ${result.stakeAdvice}`} color="#ffd70022" textColor="#ffd700" />
+                  </div>
+                </div>
+
+                {/* Key Factors */}
+                {result.keyFactors?.length > 0 && (
+                  <div style={card}>
+                    <div style={sectionTitle}>
+                      <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block" }} />
+                      Key Factors
+                    </div>
+                    {result.keyFactors.map((f, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6, fontSize: 12, color: "#bbb" }}>
+                        <span style={{ color: "#ffd700", marginTop: 1 }}>→</span> {f}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Bet Cards */}
+                {result.bets?.map((bet, i) => (
+                  <div key={i} style={{
+                    background: "#0d0d1a", border: `1px solid ${valueColor[bet.value]}44`,
+                    borderRadius: 10, padding: 18, marginBottom: 12
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 10, color: "#555", letterSpacing: 1, marginBottom: 3 }}>{bet.type?.toUpperCase()}</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 800, color: "#e0e0ff" }}>{bet.pick}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <Badge label={`Value: ${bet.value}`} color={valueColor[bet.value] + "22"} textColor={valueColor[bet.value]} />
+                        {bet.odds && <Badge label={`Min: ${bet.odds}`} color="#222" textColor="#888" />}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 10 }}>{bet.reasoning}</div>
+                    <ConfidenceMeter value={bet.confidence} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ textAlign: "center", marginTop: 32, marginBottom: 16, fontSize: 10, color: "#333", lineHeight: 1.8 }}>
+              FOR ANALYTICAL PURPOSES ONLY · BET RESPONSIBLY<br />
+              PAST ANALYSIS DOES NOT GUARANTEE FUTURE RESULTS
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<BetAnalyzer />);
+  </script>
+
+</body>
+</html>
