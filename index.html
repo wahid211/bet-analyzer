@@ -288,7 +288,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useCallback } = React;
+const { useState } = React;
 
 // ── CONFIG ──
 const MOMO = “0542232899”;
@@ -435,8 +435,8 @@ const factors = [];
 if (hScore > aScore) factors.push(`${homeTeam} in better form (${hScore}/15 pts)`);
 else if (aScore > hScore) factors.push(`${awayTeam} in better form (${aScore}/15 pts)`);
 else factors.push(“Both teams evenly matched on form”);
-if (hPos < aPos) factors.push(`${homeTeam} higher in table (${hPos}${hPos===1?"st":hPos===2?"nd":hPos===3?"rd":"th"} vs ${aPos}${aPos===1?"st":aPos===2?"nd":aPos===3?"rd":"th"})`);
-else factors.push(`${awayTeam} better league position (${aPos}${aPos===1?"st":aPos===2?"nd":aPos===3?"rd":"th"})`);
+if (hPos < aPos) factors.push(homeTeam + “ higher in table (” + hPos + “th vs “ + aPos + “th)”);
+else factors.push(awayTeam + “ better league position (” + aPos + “th)”);
 if (over25P > 0.6) factors.push(“High goal expectancy — both attacks in form”);
 else factors.push(“Likely tight, low-scoring affair”);
 if (h2h) factors.push(“H2H history factored into assessment”);
@@ -779,7 +779,8 @@ return (
             </div>
           </div>
           <button className="share-btn" onClick={()=>{
-            const text = "🎫 MY BET SLIP\n" + slip.map(s=>`• ${s.match}\n  ${s.pick} @ ${s.odds}`).join("\n") + `\n\nCombined Odds: ${totalOdds}x\n\nAnalyzed by BetMind AI`;
+            const lines = slip.map(s => "• " + s.match + "\n  " + s.pick + " @ " + s.odds).join("\n");
+            const text = "🎫 MY BET SLIP\n" + lines + "\n\nCombined Odds: " + totalOdds + "x\n\nAnalyzed by BetMind AI";
             if (navigator.share) navigator.share({title:"BetMind AI Slip",text});
             else { navigator.clipboard?.writeText(text); alert("Slip copied to clipboard!"); }
           }}>📤 SHARE SLIP</button>
