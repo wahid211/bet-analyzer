@@ -2,654 +2,809 @@
 
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BetMind AI — Powered by Intelligence</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BetMind AI — Pro Slip Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
+    :root {
+      --red: #E8001D;
+      --red2: #ff2d4a;
+      --dark: #0a0a0a;
+      --card: #111111;
+      --card2: #181818;
+      --border: #2a2a2a;
+      --text: #ffffff;
+      --muted: #666;
+      --green: #00e676;
+      --yellow: #FFD600;
+      --blue: #2979ff;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #070711; color: #e0e0ff; font-family: 'Space Mono', monospace; }
-    select option { background: #0d0d1a; color: #e0e0ff; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0d0d1a; }
-    ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 3px; }
-    input::placeholder, textarea::placeholder { color: #333; }
-    input:focus, textarea:focus, select:focus { border-color: #4d9eff !important; outline: none; }
+    body { background: var(--dark); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+    input::placeholder, textarea::placeholder, select { color: #444; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--red) !important; }
+    select option { background: #111; color: #fff; }
 
 ```
-@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes glow { 0%, 100% { box-shadow: 0 0 20px #4d9eff44; } 50% { box-shadow: 0 0 40px #4d9eff88; } }
+@keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes flash { 0%,100% { background: var(--red); } 50% { background: var(--red2); } }
+@keyframes slipBounce { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
-.fade-in { animation: fadeIn 0.4s ease forwards; }
-.spin { animation: spin 1s linear infinite; display: inline-block; }
+.slide-up { animation: slideUp .35s ease forwards; }
+.spin { animation: spin .8s linear infinite; display: inline-block; }
 
-.modal-overlay {
-  position: fixed; inset: 0; background: #000000cc;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100; padding: 16px;
-  animation: fadeIn 0.2s ease;
-  backdrop-filter: blur(4px);
+/* HEADER */
+.header {
+  background: var(--dark);
+  border-bottom: 3px solid var(--red);
+  padding: 0 16px;
+  position: sticky; top: 0; z-index: 50;
 }
-.modal-box {
-  background: #0d0d1a; border: 1px solid #2a2a4a;
-  border-radius: 16px; padding: 28px; max-width: 380px; width: 100%;
-  animation: fadeIn 0.3s ease;
+.header-inner {
+  max-width: 640px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 58px;
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--text); }
+.logo span { color: var(--red); }
+.slip-btn {
+  background: var(--red); border: none; border-radius: 8px;
+  color: #fff; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  padding: 8px 14px; cursor: pointer; position: relative;
+  display: flex; align-items: center; gap: 6px;
+  text-transform: uppercase; transition: background .2s;
+}
+.slip-btn:hover { background: var(--red2); }
+.slip-count {
+  background: var(--yellow); color: #000; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* TABS */
+.tabs {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; max-width: 640px; margin: 0 auto;
+}
+.tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent;
+  transition: all .2s;
+}
+.tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* CONTENT */
+.content { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+/* CARDS */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px; margin-bottom: 14px;
+}
+.card-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+  font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--red); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title::before {
+  content: ''; width: 3px; height: 14px;
+  background: var(--red); border-radius: 2px; display: inline-block;
+}
+
+/* INPUTS */
+.input {
+  background: #0d0d0d; border: 1px solid var(--border);
+  border-radius: 6px; color: #fff; padding: 10px 12px;
+  font-family: 'Barlow', sans-serif; font-size: 14px; width: 100%;
+  transition: border .2s;
+}
+.label {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); display: block; margin-bottom: 5px;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* BET TYPE PILLS */
+.pill {
+  background: #0d0d0d; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; font-family: 'Barlow', sans-serif;
+  font-size: 12px; cursor: pointer; color: var(--muted);
+  transition: all .2s; text-align: center;
+}
+.pill.active { background: #1a0005; border-color: var(--red); color: var(--red); font-weight: 700; }
+
+/* ANALYZE BTN */
+.analyze-btn {
+  width: 100%; padding: 16px;
+  background: var(--red);
+  border: none; border-radius: 10px;
+  color: #fff; font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 3px; cursor: pointer;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.analyze-btn:hover { background: var(--red2); transform: translateY(-1px); box-shadow: 0 8px 24px #e8001d44; }
+.analyze-btn:disabled { background: #222; color: #444; cursor: default; transform: none; box-shadow: none; }
+
+/* RESULT VERDICT */
+.verdict-banner {
+  border-radius: 10px; padding: 20px;
+  margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.verdict-label {
+  font-family: 'Bebas Neue', sans-serif; font-size: 42px;
+  letter-spacing: 4px; line-height: 1;
+}
+.confidence-bar-wrap { height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin-top: 10px; }
+.confidence-bar { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
+
+/* BET CARD */
+.bet-card {
+  background: var(--card2); border-radius: 10px;
+  padding: 16px; margin-bottom: 10px; border-left: 4px solid transparent;
+  position: relative;
+}
+.bet-pick { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; }
+.add-slip-btn {
+  background: var(--red); border: none; border-radius: 6px;
+  color: #fff; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  padding: 6px 12px; cursor: pointer; text-transform: uppercase;
+  transition: all .2s; white-space: nowrap;
+}
+.add-slip-btn:hover { background: var(--red2); }
+.add-slip-btn.added { background: var(--green); color: #000; }
+
+/* BET SLIP PANEL */
+.slip-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #111; border-top: 3px solid var(--red);
+  z-index: 200; max-height: 80vh; overflow-y: auto;
+  animation: slideUp .3s ease;
+}
+.slip-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: #111; z-index: 1;
+}
+.slip-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+.slip-item {
+  padding: 14px 16px; border-bottom: 1px solid #1a1a1a;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+}
+.remove-btn {
+  background: none; border: 1px solid #333; border-radius: 4px;
+  color: #666; font-size: 14px; cursor: pointer; padding: 2px 8px;
+  transition: all .2s; flex-shrink: 0;
+}
+.remove-btn:hover { border-color: var(--red); color: var(--red); }
+.slip-footer { padding: 16px; }
+.total-odds {
+  background: #0d0d0d; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; margin-bottom: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.share-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--red), #ff6b35);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  letter-spacing: 3px; cursor: pointer; transition: all .2s;
+}
+.share-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px #e8001d44; }
+.clear-btn {
+  width: 100%; padding: 10px; background: transparent;
+  border: 1px solid #333; border-radius: 8px; color: #555;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  transition: all .2s; margin-top: 8px;
+}
+.clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* PAYWALL */
+.overlay { position: fixed; inset: 0; background: #000000dd; z-index: 300; display: flex; align-items: flex-end; justify-content: center; animation: slideUp .2s ease; backdrop-filter: blur(6px); }
+.paywall {
+  background: #111; border-top: 3px solid var(--red);
+  border-radius: 20px 20px 0 0; padding: 28px 20px;
+  width: 100%; max-width: 640px; animation: slideUp .3s ease;
+}
+.pw-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 3px; margin-bottom: 4px; }
+.pw-price {
+  font-family: 'Bebas Neue', sans-serif; font-size: 56px;
+  color: var(--red); line-height: 1; margin: 16px 0;
+}
+.feature-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: #bbb; }
+.momo-box {
+  background: #0d0d0d; border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin: 20px 0;
+}
+.momo-number { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 3px; color: var(--yellow); }
+.pay-btn {
+  width: 100%; padding: 16px; background: var(--red);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+  letter-spacing: 3px; cursor: pointer; margin-bottom: 10px;
+}
+.code-input {
+  width: 100%; background: #0d0d0d; border: 1px solid var(--border);
+  border-radius: 8px; color: #fff; padding: 14px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  letter-spacing: 4px; text-align: center; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.unlock-btn {
+  width: 100%; padding: 14px; background: var(--green);
+  border: none; border-radius: 10px; color: #000;
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  letter-spacing: 3px; cursor: pointer;
+}
+.error-box {
+  background: #1a0005; border: 1px solid var(--red);
+  border-radius: 8px; padding: 12px; color: var(--red);
+  font-size: 13px; margin-bottom: 10px; text-align: center;
+}
+
+/* HISTORY TAB */
+.history-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin-bottom: 10px;
+}
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* VALUE BADGES */
+.badge {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px;
+}
+.badge-high { background: #00e67622; color: var(--green); }
+.badge-med { background: #FFD60022; color: var(--yellow); }
+.badge-low { background: #ffffff11; color: #888; }
+.badge-avoid { background: #e8001d22; color: var(--red); }
+
+.tag {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px; background: #1a1a1a; color: #666;
 }
 ```
 
   </style>
 </head>
 <body>
-  <div id="root"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback } = React;
 
-  <script type="text/babel">
-    const { useState } = React;
+// ── CONFIG ──
+const MOMO = “0542232899”;
+const PRICE = 10;
+const CODES = [“BM-4831”,“BM-7263”,“BM-9104”,“BM-3357”,“BM-6892”,“BM-2048”,“BM-5571”,“BM-8830”,“BM-1195”,“BM-4462”,“BM-7039”,“BM-2984”,“BM-6617”,“BM-3305”,“BM-9743”,“BM-1822”,“BM-5590”,“BM-8014”,“BM-3671”,“BM-7458”,“BETA-FREE”];
+const LEAGUES = [“Premier League”,“La Liga”,“Serie A”,“Bundesliga”];
+const BET_TYPES = [“1X2 (Match Result)”,“Over/Under Goals”,“BTTS”,“Asian Handicap”];
 
-    // ── CONFIG ── Change YOUR_MOMO_NUMBER to your real MTN MoMo number
-    const MOMO_NUMBER = "0542232899";
-    const PRICE_GHS = 10;
-    const APP_NAME = "BetMind AI";
-    // Valid payment reference codes — share ONE with each customer after they pay
-    const VALID_CODES = ["BM-4831","BM-7263","BM-9104","BM-3357","BM-6892","BM-2048","BM-5571","BM-8830","BM-1195","BM-4462","BM-7039","BM-2984","BM-6617","BM-3305","BM-9743","BM-1822","BM-5590","BM-8014","BM-3671","BM-7458"];
+// ── RULE-BASED ANALYSIS ENGINE ──
+function analyzeMatch(form) {
+const { homeTeam, awayTeam, league, homeForm, awayForm, homePosition, awayPosition,
+homeGoalsFor, homeGoalsAgainst, awayGoalsFor, awayGoalsAgainst, h2h, odds1, oddsX, odds2, betTypes, extraContext } = form;
 
-    const LEAGUES = ["Premier League", "La Liga", "Serie A", "Bundesliga"];
-    const BET_TYPES = ["1X2 (Match Result)", "Over/Under Goals", "BTTS", "Asian Handicap"];
+// Parse form strings e.g. “W W D L W”
+const parseForm = (f) => {
+if (!f) return [];
+return f.toUpperCase().replace(/[^WDL]/g, ’ ’).trim().split(/\s+/).filter(Boolean).slice(0, 5);
+};
+const formScore = (results) => {
+return results.reduce((s, r) => s + (r === ‘W’ ? 3 : r === ‘D’ ? 1 : 0), 0);
+};
+const hForm = parseForm(homeForm);
+const aForm = parseForm(awayForm);
+const hScore = formScore(hForm);
+const aScore = formScore(aForm);
 
-    const ConfidenceMeter = ({ value }) => {
-      const color = value >= 75 ? "#00ff87" : value >= 55 ? "#ffd700" : "#ff4d6d";
-      return (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: "#888", letterSpacing: 1, textTransform: "uppercase" }}>Confidence</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "'Space Mono', monospace" }}>{value}%</span>
-          </div>
-          <div style={{ height: 4, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{
-              height: "100%", width: `${value}%`,
-              background: `linear-gradient(90deg, ${color}88, ${color})`,
-              borderRadius: 2, transition: "width 1s ease", boxShadow: `0 0 8px ${color}`
-            }} />
-          </div>
+const hPos = parseInt(homePosition) || 10;
+const aPos = parseInt(awayPosition) || 10;
+const hGF = parseFloat(homeGoalsFor) || 0;
+const hGA = parseFloat(homeGoalsAgainst) || 0;
+const aGF = parseFloat(awayGoalsFor) || 0;
+const aGA = parseFloat(awayGoalsAgainst) || 0;
+const o1 = parseFloat(odds1) || 2.5;
+const oX = parseFloat(oddsX) || 3.2;
+const o2 = parseFloat(odds2) || 2.8;
+
+// Implied probabilities
+const total = (1/o1) + (1/oX) + (1/o2);
+const impHome = (1/o1) / total;
+const impDraw = (1/oX) / total;
+const impAway = (1/o2) / total;
+
+// Strength scores
+let homeStr = 50;
+let awayStr = 50;
+
+// Home advantage
+homeStr += 5;
+
+// Form
+homeStr += (hScore - 7.5) * 2;
+awayStr += (aScore - 7.5) * 2;
+
+// Position
+homeStr += (10 - hPos) * 1.5;
+awayStr += (10 - aPos) * 1.5;
+
+// Goals
+if (hGF > 0) homeStr += (hGF / 10) * 5;
+if (hGA > 0) homeStr -= (hGA / 10) * 5;
+if (aGF > 0) awayStr += (aGF / 10) * 5;
+if (aGA > 0) awayStr -= (aGA / 10) * 5;
+
+homeStr = Math.max(20, Math.min(85, homeStr));
+awayStr = Math.max(20, Math.min(85, awayStr));
+
+// Win probabilities
+const totalStr = homeStr + awayStr + 20;
+const homeWinP = (homeStr / totalStr);
+const awayWinP = (awayStr / totalStr);
+const drawP = 1 - homeWinP - awayWinP;
+
+// Verdict
+let verdict, verdictColor, verdictBg;
+if (homeWinP > 0.45) { verdict = “HOME WIN”; verdictColor = “#00e676”; verdictBg = “#00e67610”; }
+else if (awayWinP > 0.45) { verdict = “AWAY WIN”; verdictColor = “#2979ff”; verdictBg = “#2979ff10”; }
+else if (drawP > 0.3) { verdict = “DRAW LIKELY”; verdictColor = “#FFD600”; verdictBg = “#FFD60010”; }
+else { verdict = “UNPREDICTABLE”; verdictColor = “#E8001D”; verdictBg = “#E8001D10”; }
+
+const mainConf = Math.round(Math.max(homeWinP, awayWinP, drawP) * 100);
+
+// Goals analysis
+const avgGoals = ((hGF + hGA + aGF + aGA) / 2) || 2.5;
+const over25P = avgGoals > 2.8 ? 0.72 : avgGoals > 2.3 ? 0.58 : 0.42;
+const bttsP = (hGF > 10 && aGF > 10) ? 0.68 : (hGA > 15 || aGA > 15) ? 0.71 : 0.52;
+
+// Value detection
+const homeValue = homeWinP > impHome * 1.1;
+const awayValue = awayWinP > impAway * 1.1;
+const over25Value = over25P > 0.62;
+
+// Build bets
+const selectedTypes = betTypes.length ? betTypes : BET_TYPES;
+const bets = [];
+
+if (selectedTypes.includes(“1X2 (Match Result)”)) {
+const pick = homeWinP > awayWinP ? `${homeTeam} Win` : `${awayTeam} Win`;
+const conf = homeWinP > awayWinP ? Math.round(homeWinP * 100) : Math.round(awayWinP * 100);
+const value = (homeWinP > awayWinP ? homeValue : awayValue) ? “HIGH” : conf > 55 ? “MEDIUM” : “LOW”;
+const minOdds = homeWinP > awayWinP ? o1 : o2;
+bets.push({
+type: “1X2 Match Result”, pick, confidence: Math.max(45, Math.min(85, conf)),
+odds: minOdds.toFixed(2), value,
+reasoning: `${pick} backed by ${homeWinP > awayWinP ? homeTeam+"'s" : awayTeam+"'s"} form score of ${homeWinP > awayWinP ? hScore : aScore}/15 and league position advantage. ${value === "HIGH" ? "Market odds offer real value here." : "Confidence is moderate — use as part of accumulator."}`
+});
+}
+
+if (selectedTypes.includes(“Over/Under Goals”)) {
+const pick = over25P > 0.55 ? “Over 2.5 Goals” : “Under 2.5 Goals”;
+const conf = Math.round(Math.abs(over25P - 0.5) * 200 + 50);
+const value = over25Value ? “HIGH” : conf > 58 ? “MEDIUM” : “LOW”;
+bets.push({
+type: “Over/Under Goals”, pick, confidence: Math.max(45, Math.min(82, conf)),
+odds: pick.includes(“Over”) ? “1.75” : “2.00”, value,
+reasoning: `Average goals across both teams' recent matches suggests ${avgGoals.toFixed(1)} per game. ${pick.includes("Over") ? "High scoring tendencies on both sides." : "Defensive records indicate a tight match."} ${hGA > 15 || aGA > 15 ? "Leaky defences increase goal probability." : ""}`
+});
+}
+
+if (selectedTypes.includes(“BTTS”)) {
+const pick = bttsP > 0.55 ? “BTTS Yes” : “BTTS No”;
+const conf = Math.round(Math.abs(bttsP - 0.5) * 200 + 50);
+const value = bttsP > 0.62 ? “HIGH” : conf > 58 ? “MEDIUM” : “LOW”;
+bets.push({
+type: “Both Teams To Score”, pick, confidence: Math.max(45, Math.min(80, conf)),
+odds: pick.includes(“Yes”) ? “1.80” : “2.10”, value,
+reasoning: `${pick === "BTTS Yes" ? `Both sides have shown attacking intent. ${homeTeam} GF: ${hGF}, ${awayTeam} GF: ${aGF}.`:`At least one side is likely to be shut out based on defensive form.`} ${bttsP > 0.65 ? "Strong BTTS signal detected." : "Moderate probability — pair with other selections."}`
+});
+}
+
+if (selectedTypes.includes(“Asian Handicap”)) {
+const stronger = homeStr > awayStr ? homeTeam : awayTeam;
+const handicap = Math.abs(homeStr - awayStr) > 15 ? “-1” : “-0.5”;
+const pick = `${stronger} ${handicap}`;
+const conf = Math.round(Math.abs(homeStr - awayStr));
+bets.push({
+type: “Asian Handicap”, pick, confidence: Math.max(48, Math.min(78, conf + 45)),
+odds: “1.90”, value: conf > 15 ? “MEDIUM” : “LOW”,
+reasoning: `${stronger} shows a clear strength advantage (${Math.round(Math.max(homeStr,awayStr))} vs ${Math.round(Math.min(homeStr,awayStr))}). Handicap cushion reduces risk. ${conf > 20 ? "Gap is significant enough to back." : "Close contest — use small stake."}`
+});
+}
+
+// Key factors
+const factors = [];
+if (hScore > aScore) factors.push(`${homeTeam} in better form (${hScore}/15 pts)`);
+else if (aScore > hScore) factors.push(`${awayTeam} in better form (${aScore}/15 pts)`);
+else factors.push(“Both teams evenly matched on form”);
+if (hPos < aPos) factors.push(`${homeTeam} higher in table (${hPos}${hPos===1?"st":hPos===2?"nd":hPos===3?"rd":"th"} vs ${aPos}${aPos===1?"st":aPos===2?"nd":aPos===3?"rd":"th"})`);
+else factors.push(`${awayTeam} better league position (${aPos}${aPos===1?"st":aPos===2?"nd":aPos===3?"rd":"th"})`);
+if (over25P > 0.6) factors.push(“High goal expectancy — both attacks in form”);
+else factors.push(“Likely tight, low-scoring affair”);
+if (h2h) factors.push(“H2H history factored into assessment”);
+
+const risk = mainConf > 70 ? “LOW” : mainConf > 58 ? “MEDIUM” : “HIGH”;
+
+return {
+verdict, verdictColor, verdictBg,
+confidence: mainConf,
+summary: `${homeTeam} host ${awayTeam} in a ${league} clash. ${homeStr > awayStr ? homeTeam + " hold the edge" : awayTeam + " look stronger"} based on current form and standings. ${over25P > 0.6 ? "An open, goal-heavy game is expected." : "Expect a competitive, tight affair."}`,
+bets, factors, risk,
+stakeAdvice: mainConf > 70 ? “2–3 units” : mainConf > 58 ? “1–2 units” : “0.5–1 unit”
+};
+}
+
+// ── PAYWALL ──
+function Paywall({ onSuccess, onClose, matchLabel }) {
+const [step, setStep] = useState(“info”);
+const [code, setCode] = useState(””);
+const [err, setErr] = useState(””);
+
+const verify = () => {
+if (CODES.includes(code.trim().toUpperCase())) onSuccess();
+else setErr(“Invalid code. Pay GHS 10 to 0542232899 and send screenshot on WhatsApp to get your code.”);
+};
+
+return (
+<div className="overlay" onClick={onClose}>
+<div className=“paywall” onClick={e => e.stopPropagation()}>
+{step === “info” && <>
+<div className="pw-title">UNLOCK ANALYSIS</div>
+<div style={{fontSize:13,color:”#666”}}>{matchLabel}</div>
+<div className="pw-price">GHS {PRICE}</div>
+{[“Full AI-powered match breakdown”,“Confidence scores for every bet”,“Asian Handicap + BTTS + Over/Under”,“Add picks to your Bet Slip”].map((f,i)=>(
+<div className="feature-row" key={i}><span style={{color:“var(–green)”}}>✓</span> {f}</div>
+))}
+<div className="momo-box">
+<div style={{fontSize:11,color:”#555”,letterSpacing:1,marginBottom:6,fontFamily:”‘Barlow Condensed’,sans-serif”,textTransform:“uppercase”}}>Send Payment To</div>
+<div className="momo-number">{MOMO}</div>
+<div style={{fontSize:11,color:”#444”,marginTop:4}}>MTN Mobile Money</div>
+</div>
+<button className=“pay-btn” onClick={()=>setStep(“code”)}>I’VE PAID — ENTER CODE →</button>
+<button onClick={onClose} style={{width:“100%”,background:“none”,border:“none”,color:”#444”,fontFamily:”‘Barlow’,sans-serif”,fontSize:13,cursor:“pointer”,padding:“8px”}}>Cancel</button>
+</>}
+{step === “code” && <>
+<div className="pw-title">ENTER ACCESS CODE</div>
+<div style={{fontSize:13,color:”#666”,marginBottom:20}}>Sent to you after payment</div>
+<input className=“code-input” value={code} onChange={e=>{setCode(e.target.value);setErr(””);}} placeholder=“e.g. BM-4831” onKeyDown={e=>e.key===“Enter”&&verify()}/>
+{err && <div className="error-box">{err}</div>}
+<button className="unlock-btn" onClick={verify}>UNLOCK ✓</button>
+<button onClick={()=>setStep(“info”)} style={{width:“100%”,background:“none”,border:“none”,color:”#444”,fontFamily:”‘Barlow’,sans-serif”,fontSize:13,cursor:“pointer”,padding:“10px”}}>← Back</button>
+</>}
+</div>
+</div>
+);
+}
+
+// ── MAIN APP ──
+function App() {
+const [tab, setTab] = useState(“analyze”);
+const [form, setForm] = useState({
+league:””, homeTeam:””, awayTeam:””, homeForm:””, awayForm:””,
+homePosition:””, awayPosition:””, homeGoalsFor:””, homeGoalsAgainst:””,
+awayGoalsFor:””, awayGoalsAgainst:””, h2h:””, odds1:””, oddsX:””, odds2:””,
+betTypes:[], extraContext:””
+});
+const [result, setResult] = useState(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState(””);
+const [showPaywall, setShowPaywall] = useState(false);
+const [showSlip, setShowSlip] = useState(false);
+const [slip, setSlip] = useState([]);
+const [history, setHistory] = useState([]);
+const [addedBets, setAddedBets] = useState({});
+
+const sf = (k,v) => setForm(f=>({…f,[k]:v}));
+const toggleBetType = bt => setForm(f=>({…f, betTypes: f.betTypes.includes(bt) ? f.betTypes.filter(x=>x!==bt) : […f.betTypes,bt]}));
+
+const handleAnalyze = () => {
+if (!form.homeTeam || !form.awayTeam || !form.league) { setError(“Enter league, home and away team.”); return; }
+setError(””); setShowPaywall(true);
+};
+
+const runAnalysis = () => {
+setShowPaywall(false);
+setLoading(true);
+setResult(null);
+setAddedBets({});
+setTimeout(() => {
+const r = analyzeMatch(form);
+setResult(r);
+setHistory(h => [{match:`${form.homeTeam} vs ${form.awayTeam}`, league:form.league, verdict:r.verdict, confidence:r.confidence, date:new Date().toLocaleDateString(), bets:r.bets}, …h.slice(0,9)]);
+setLoading(false);
+}, 1200);
+};
+
+const addToSlip = (bet, idx) => {
+const item = { id: Date.now()+idx, match:`${form.homeTeam} vs ${form.awayTeam}`, type:bet.type, pick:bet.pick, odds:bet.odds, confidence:bet.confidence };
+setSlip(s => […s, item]);
+setAddedBets(a => ({…a, [idx]: true}));
+};
+
+const removeFromSlip = id => setSlip(s => s.filter(x=>x.id!==id));
+
+const totalOdds = slip.reduce((acc, b) => acc * (parseFloat(b.odds)||1), 1).toFixed(2);
+
+const confColor = c => c >= 70 ? “var(–green)” : c >= 55 ? “var(–yellow)” : “var(–red)”;
+const valClass = v => v===“HIGH” ? “badge-high” : v===“MEDIUM” ? “badge-med” : “badge-low”;
+
+return (
+<div>
+{/* HEADER */}
+<div className="header">
+<div className="header-inner">
+<div className="logo">BET<span>MIND</span> AI</div>
+<button className=“slip-btn” onClick={()=>setShowSlip(!showSlip)}>
+🎫 BET SLIP
+{slip.length > 0 && <span className="slip-count">{slip.length}</span>}
+</button>
+</div>
+</div>
+
+```
+  {/* TABS */}
+  <div style={{background:"var(--card)",borderBottom:"1px solid var(--border)"}}>
+    <div className="tabs" style={{maxWidth:640,margin:"0 auto"}}>
+      {["analyze","history"].map(t=>(
+        <div key={t} className={`tab ${tab===t?"active":""}`} onClick={()=>setTab(t)}>
+          {t==="analyze" ? "⚡ Analyze" : "📋 History"}
         </div>
-      );
-    };
+      ))}
+    </div>
+  </div>
 
-    const Badge = ({ label, color = "#333", textColor = "#fff" }) => (
-      <span style={{
-        background: color, color: textColor, fontSize: 10, fontWeight: 700,
-        padding: "3px 8px", borderRadius: 3, letterSpacing: 1.2,
-        textTransform: "uppercase", fontFamily: "'Space Mono', monospace"
-      }}>{label}</span>
-    );
+  {/* CONTENT */}
+  <div className="content">
 
-    // ── PAYWALL MODAL ──
-    const PaywallModal = ({ onSuccess, onClose, matchLabel }) => {
-      const [step, setStep] = useState("info"); // info | confirm | verify
-      const [code, setCode] = useState("");
-      const [error, setError] = useState("");
+    {tab === "analyze" && <>
 
-      const handleVerify = () => {
-        if (VALID_CODES.includes(code.trim().toUpperCase())) {
-          onSuccess();
-        } else {
-          setError("Invalid code. Please check your payment reference and try again.");
-        }
-      };
-
-      return (
-        <div className="modal-overlay" onClick={onClose}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-
-            {step === "info" && (
-              <>
-                <div style={{ textAlign: "center", marginBottom: 24 }}>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>⚡</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 900, color: "#e0e0ff" }}>
-                    Run Analysis
-                  </div>
-                  <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>{matchLabel}</div>
-                </div>
-
-                {/* Price tag */}
-                <div style={{
-                  background: "linear-gradient(135deg, #0a1628, #0d1f3c)",
-                  border: "1px solid #4d9eff44", borderRadius: 12, padding: 20,
-                  textAlign: "center", marginBottom: 20
-                }}>
-                  <div style={{ fontSize: 11, color: "#4d9eff", letterSpacing: 2, marginBottom: 6 }}>ONE-TIME PAYMENT</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 900, color: "#fff" }}>
-                    GHS {PRICE_GHS}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>per match analysis</div>
-                </div>
-
-                {/* What you get */}
-                {["AI verdict with confidence score", "Value picks for all 4 bet types", "Key factors & risk rating", "Stake advice from our AI model"].map((f, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8, fontSize: 12, color: "#aaa" }}>
-                    <span style={{ color: "#00ff87", fontSize: 14 }}>✓</span> {f}
-                  </div>
-                ))}
-
-                <button onClick={() => setStep("confirm")} style={{
-                  width: "100%", marginTop: 20, padding: "14px",
-                  background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
-                  border: "none", borderRadius: 8, color: "#fff",
-                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
-                  letterSpacing: 1.5, cursor: "pointer", textTransform: "uppercase",
-                  animation: "glow 2s infinite"
-                }}>
-                  Pay GHS {PRICE_GHS} via MoMo →
-                </button>
-                <button onClick={onClose} style={{
-                  width: "100%", marginTop: 10, padding: "10px",
-                  background: "transparent", border: "none", color: "#444",
-                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
-                }}>Cancel</button>
-              </>
-            )}
-
-            {step === "confirm" && (
-              <>
-                <div style={{ textAlign: "center", marginBottom: 20 }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>📲</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 900 }}>Send MoMo Payment</div>
-                </div>
-
-                <div style={{
-                  background: "#111", border: "1px solid #2a2a4a",
-                  borderRadius: 10, padding: 16, marginBottom: 16
-                }}>
-                  <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>SEND TO</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: "#4d9eff", letterSpacing: 2 }}>
-                    {MOMO_NUMBER}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>MTN Mobile Money</div>
-                </div>
-
-                <div style={{
-                  background: "#111", border: "1px solid #2a2a4a",
-                  borderRadius: 10, padding: 16, marginBottom: 20
-                }}>
-                  <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>AMOUNT</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 900, color: "#00ff87" }}>
-                    GHS {PRICE_GHS}
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 20, padding: "12px", background: "#0a0a14", borderRadius: 8 }}>
-                  📌 After payment, send a screenshot to WhatsApp and you'll receive your <strong style={{color: "#e0e0ff"}}>access code</strong> within minutes.
-                </div>
-
-                <button onClick={() => setStep("verify")} style={{
-                  width: "100%", padding: "14px",
-                  background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
-                  border: "none", borderRadius: 8, color: "#fff",
-                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
-                  letterSpacing: 1.5, cursor: "pointer", textTransform: "uppercase"
-                }}>
-                  I've Paid — Enter Code →
-                </button>
-                <button onClick={() => setStep("info")} style={{
-                  width: "100%", marginTop: 10, padding: "10px",
-                  background: "transparent", border: "none", color: "#444",
-                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
-                }}>← Back</button>
-              </>
-            )}
-
-            {step === "verify" && (
-              <>
-                <div style={{ textAlign: "center", marginBottom: 20 }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>🔑</div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 900 }}>Enter Access Code</div>
-                  <div style={{ fontSize: 11, color: "#555", marginTop: 6 }}>You received this after payment</div>
-                </div>
-
-                <input
-                  value={code}
-                  onChange={e => { setCode(e.target.value); setError(""); }}
-                  placeholder="e.g. BM-2024"
-                  style={{
-                    width: "100%", background: "#111", border: "1px solid #2a2a4a",
-                    borderRadius: 8, color: "#e0e0ff", padding: "14px 16px",
-                    fontSize: 16, fontFamily: "'Space Mono', monospace",
-                    textAlign: "center", letterSpacing: 3, textTransform: "uppercase",
-                    marginBottom: 12
-                  }}
-                  onKeyDown={e => e.key === "Enter" && handleVerify()}
-                />
-
-                {error && (
-                  <div style={{
-                    background: "#ff4d6d22", border: "1px solid #ff4d6d44",
-                    borderRadius: 6, padding: "10px 12px", color: "#ff4d6d",
-                    fontSize: 11, marginBottom: 12, textAlign: "center"
-                  }}>{error}</div>
-                )}
-
-                <button onClick={handleVerify} style={{
-                  width: "100%", padding: "14px",
-                  background: code ? "linear-gradient(135deg, #1a3a8f, #4d9eff)" : "#1a1a2e",
-                  border: "none", borderRadius: 8, color: code ? "#fff" : "#444",
-                  fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
-                  letterSpacing: 1.5, cursor: code ? "pointer" : "default",
-                  textTransform: "uppercase", transition: "all 0.3s"
-                }}>
-                  Unlock Analysis ✓
-                </button>
-                <button onClick={() => setStep("confirm")} style={{
-                  width: "100%", marginTop: 10, padding: "10px",
-                  background: "transparent", border: "none", color: "#444",
-                  fontSize: 11, cursor: "pointer", fontFamily: "'Space Mono', monospace"
-                }}>← Back</button>
-              </>
-            )}
-          </div>
+      {/* Match Details */}
+      <div className="card slide-up">
+        <div className="card-title">Match Details</div>
+        <div style={{marginBottom:14}}>
+          <label className="label">League</label>
+          <select className="input" value={form.league} onChange={e=>sf("league",e.target.value)}>
+            <option value="">Select league...</option>
+            {LEAGUES.map(l=><option key={l} value={l}>{l}</option>)}
+          </select>
         </div>
-      );
-    };
+        <div className="grid2">
+          <div><label className="label">Home Team</label><input className="input" placeholder="e.g. Arsenal" value={form.homeTeam} onChange={e=>sf("homeTeam",e.target.value)}/></div>
+          <div><label className="label">Away Team</label><input className="input" placeholder="e.g. Chelsea" value={form.awayTeam} onChange={e=>sf("awayTeam",e.target.value)}/></div>
+        </div>
+      </div>
 
-    // ── MAIN APP ──
-    function BetMindAI() {
-      const [form, setForm] = useState({
-        league: "", homeTeam: "", awayTeam: "", homeForm: "",
-        awayForm: "", homePosition: "", awayPosition: "",
-        homeGoalsFor: "", homeGoalsAgainst: "", awayGoalsFor: "", awayGoalsAgainst: "",
-        h2h: "", odds1: "", oddsX: "", odds2: "", betTypes: [], extraContext: ""
-      });
-      const [result, setResult] = useState(null);
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState("");
-      const [showPaywall, setShowPaywall] = useState(false);
-
-      const toggleBetType = (bt) => {
-        setForm(f => ({
-          ...f, betTypes: f.betTypes.includes(bt)
-            ? f.betTypes.filter(x => x !== bt)
-            : [...f.betTypes, bt]
-        }));
-      };
-
-      const handleAnalyzeClick = () => {
-        if (!form.homeTeam || !form.awayTeam || !form.league) {
-          setError("Please enter league, home team, and away team at minimum.");
-          return;
-        }
-        setError("");
-        setShowPaywall(true);
-      };
-
-      const runAnalysis = async () => {
-        setShowPaywall(false);
-        setLoading(true);
-        setResult(null);
-
-        const prompt = `You are an elite football betting analyst with deep knowledge of statistics, form, and value betting.
-
-Analyze this match and provide structured betting recommendations:
-
-**Match:** ${form.homeTeam} vs ${form.awayTeam}
-**League:** ${form.league}
-**Home Form (last 5):** ${form.homeForm || "Not provided"}
-**Away Form (last 5):** ${form.awayForm || "Not provided"}
-**League Position - Home:** ${form.homePosition || "N/A"} | Away: ${form.awayPosition || "N/A"}
-**Goals For/Against - Home:** ${form.homeGoalsFor || "?"} scored / ${form.homeGoalsAgainst || "?"} conceded
-**Goals For/Against - Away:** ${form.awayGoalsFor || "?"} scored / ${form.awayGoalsAgainst || "?"} conceded
-**H2H Notes:** ${form.h2h || "Not provided"}
-**Odds:** Home Win: ${form.odds1 || "N/A"} | Draw: ${form.oddsX || "N/A"} | Away Win: ${form.odds2 || "N/A"}
-**Bet Types to Analyze:** ${form.betTypes.length ? form.betTypes.join(", ") : "All types"}
-**Extra Context:** ${form.extraContext || "None"}
-
-Respond ONLY in this exact JSON format (no markdown, no extra text):
-{
-  "summary": "2-3 sentence tactical match summary",
-  "verdict": "HOME_WIN or DRAW or AWAY_WIN or AVOID",
-  "verdictReason": "Short sharp reason for verdict",
-  "bets": [
-    {
-      "type": "bet type name",
-      "pick": "specific pick",
-      "confidence": 72,
-      "odds": "recommended minimum odds",
-      "reasoning": "2-3 sentence reasoning",
-      "value": "HIGH or MEDIUM or LOW"
-    }
-  ],
-  "keyFactors": ["factor 1", "factor 2", "factor 3"],
-  "riskLevel": "LOW or MEDIUM or HIGH",
-  "stakeAdvice": "e.g. 2 units"
-}`;
-
-        try {
-          // Use a CORS proxy to call Gemini API from browser
-          const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDd4OY6iUNmRvlw7yLBpcerCjT2SoSNd5w";
-          const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(apiUrl);
-          const response = await fetch(proxyUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
-          });
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          const clean = text.replace(/```json|```/g, "").trim();
-          setResult(JSON.parse(clean));
-        } catch (e) {
-          setError("Analysis failed. Please try again.");
-        }
-        setLoading(false);
-      };
-
-      const verdictColor = { HOME_WIN: "#00ff87", DRAW: "#ffd700", AWAY_WIN: "#4d9eff", AVOID: "#ff4d6d" };
-      const riskColor = { LOW: "#00ff87", MEDIUM: "#ffd700", HIGH: "#ff4d6d" };
-      const valueColor = { HIGH: "#00ff87", MEDIUM: "#ffd700", LOW: "#aaa" };
-
-      const inputStyle = {
-        background: "#0d0d1a", border: "1px solid #2a2a4a", borderRadius: 6,
-        color: "#e0e0ff", padding: "9px 12px", fontSize: 13,
-        fontFamily: "'Space Mono', monospace", width: "100%", transition: "border 0.2s"
-      };
-      const labelStyle = {
-        fontSize: 10, color: "#555", letterSpacing: 1.5, textTransform: "uppercase",
-        fontFamily: "'Space Mono', monospace", display: "block", marginBottom: 5
-      };
-      const sectionTitle = (color) => ({
-        fontSize: 10, color, letterSpacing: 2, textTransform: "uppercase",
-        fontFamily: "'Space Mono', monospace", marginBottom: 12,
-        display: "flex", alignItems: "center", gap: 8
-      });
-      const card = { background: "#0d0d1a", border: "1px solid #1a1a3a", borderRadius: 10, padding: 20, marginBottom: 16 };
-
-      const matchLabel = form.homeTeam && form.awayTeam
-        ? `${form.homeTeam} vs ${form.awayTeam}`
-        : "Match Analysis";
-
-      return (
-        <div style={{ minHeight: "100vh", background: "#070711", padding: "24px 16px" }}>
-
-          {showPaywall && (
-            <PaywallModal
-              matchLabel={matchLabel}
-              onSuccess={runAnalysis}
-              onClose={() => setShowPaywall(false)}
-            />
-          )}
-
-          {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
-            {/* Logo mark */}
-            <div style={{
-              width: 52, height: 52, borderRadius: 14,
-              background: "linear-gradient(135deg, #1a3a8f, #4d9eff)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto 12px", boxShadow: "0 0 24px #4d9eff44",
-              fontSize: 22
-            }}>🧠</div>
-            <h1 style={{
-              fontFamily: "'Syne', sans-serif", fontSize: 32, fontWeight: 900, margin: 0,
-              background: "linear-gradient(135deg, #ffffff 20%, #4d9eff)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              letterSpacing: -0.5
-            }}>BetMind AI</h1>
-            <p style={{ color: "#444", fontSize: 11, marginTop: 6, letterSpacing: 2 }}>
-              INTELLIGENCE · PRECISION · EDGE
-            </p>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10,
-              background: "#00ff8711", border: "1px solid #00ff8722",
-              borderRadius: 20, padding: "4px 12px"
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00ff87", boxShadow: "0 0 6px #00ff87" }} />
-              <span style={{ fontSize: 10, color: "#00ff87", letterSpacing: 1 }}>AI POWERED</span>
+      {/* Form & Stats */}
+      <div className="card">
+        <div className="card-title">Form & Statistics</div>
+        <div className="grid2" style={{marginBottom:12}}>
+          <div><label className="label">Home Form (last 5)</label><input className="input" placeholder="W W D L W" value={form.homeForm} onChange={e=>sf("homeForm",e.target.value)}/></div>
+          <div><label className="label">Away Form (last 5)</label><input className="input" placeholder="L W W D L" value={form.awayForm} onChange={e=>sf("awayForm",e.target.value)}/></div>
+          <div><label className="label">Home Position</label><input className="input" placeholder="e.g. 3" value={form.homePosition} onChange={e=>sf("homePosition",e.target.value)}/></div>
+          <div><label className="label">Away Position</label><input className="input" placeholder="e.g. 11" value={form.awayPosition} onChange={e=>sf("awayPosition",e.target.value)}/></div>
+          <div>
+            <label className="label">Home GF / GA</label>
+            <div style={{display:"flex",gap:6}}>
+              <input className="input" placeholder="GF" value={form.homeGoalsFor} onChange={e=>sf("homeGoalsFor",e.target.value)}/>
+              <input className="input" placeholder="GA" value={form.homeGoalsAgainst} onChange={e=>sf("homeGoalsAgainst",e.target.value)}/>
             </div>
           </div>
-
-          <div style={{ maxWidth: 640, margin: "0 auto" }}>
-
-            {/* Match Details */}
-            <div style={card} className="fade-in">
-              <div style={sectionTitle("#4d9eff")}>
-                <span style={{ width: 2, height: 14, background: "#4d9eff", display: "inline-block", borderRadius: 2 }} />
-                Match Details
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <label style={labelStyle}>League</label>
-                <select value={form.league} onChange={e => setForm(f => ({ ...f, league: e.target.value }))}
-                  style={{ ...inputStyle, cursor: "pointer" }}>
-                  <option value="">Select league...</option>
-                  {LEAGUES.map(l => <option key={l} value={l}>{l}</option>)}
-                </select>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={labelStyle}>Home Team</label>
-                  <input style={inputStyle} placeholder="e.g. Arsenal" value={form.homeTeam}
-                    onChange={e => setForm(f => ({ ...f, homeTeam: e.target.value }))} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Away Team</label>
-                  <input style={inputStyle} placeholder="e.g. Chelsea" value={form.awayTeam}
-                    onChange={e => setForm(f => ({ ...f, awayTeam: e.target.value }))} />
-                </div>
-              </div>
+          <div>
+            <label className="label">Away GF / GA</label>
+            <div style={{display:"flex",gap:6}}>
+              <input className="input" placeholder="GF" value={form.awayGoalsFor} onChange={e=>sf("awayGoalsFor",e.target.value)}/>
+              <input className="input" placeholder="GA" value={form.awayGoalsAgainst} onChange={e=>sf("awayGoalsAgainst",e.target.value)}/>
             </div>
+          </div>
+        </div>
+        <div><label className="label">H2H Notes</label><input className="input" placeholder="e.g. Home won last 3 meetings" value={form.h2h} onChange={e=>sf("h2h",e.target.value)}/></div>
+      </div>
 
-            {/* Form & Stats */}
-            <div style={card}>
-              <div style={sectionTitle("#00ff87")}>
-                <span style={{ width: 2, height: 14, background: "#00ff87", display: "inline-block", borderRadius: 2 }} />
-                Form & Statistics
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-                {[
-                  ["Home Form (last 5)", "homeForm", "e.g. W W D L W"],
-                  ["Away Form (last 5)", "awayForm", "e.g. L W W D L"],
-                  ["Home League Position", "homePosition", "e.g. 3rd"],
-                  ["Away League Position", "awayPosition", "e.g. 11th"],
-                ].map(([label, key, ph]) => (
-                  <div key={key}>
-                    <label style={labelStyle}>{label}</label>
-                    <input style={inputStyle} placeholder={ph} value={form[key]}
-                      onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
-                  </div>
-                ))}
-                <div>
-                  <label style={labelStyle}>Home GF / GA</label>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <input style={inputStyle} placeholder="GF" value={form.homeGoalsFor}
-                      onChange={e => setForm(f => ({ ...f, homeGoalsFor: e.target.value }))} />
-                    <input style={inputStyle} placeholder="GA" value={form.homeGoalsAgainst}
-                      onChange={e => setForm(f => ({ ...f, homeGoalsAgainst: e.target.value }))} />
-                  </div>
-                </div>
-                <div>
-                  <label style={labelStyle}>Away GF / GA</label>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <input style={inputStyle} placeholder="GF" value={form.awayGoalsFor}
-                      onChange={e => setForm(f => ({ ...f, awayGoalsFor: e.target.value }))} />
-                    <input style={inputStyle} placeholder="GA" value={form.awayGoalsAgainst}
-                      onChange={e => setForm(f => ({ ...f, awayGoalsAgainst: e.target.value }))} />
-                  </div>
-                </div>
-              </div>
+      {/* Odds */}
+      <div className="card">
+        <div className="card-title">Market Odds</div>
+        <div className="grid3">
+          <div><label className="label">Home (1)</label><input className="input" placeholder="1.85" value={form.odds1} onChange={e=>sf("odds1",e.target.value)}/></div>
+          <div><label className="label">Draw (X)</label><input className="input" placeholder="3.40" value={form.oddsX} onChange={e=>sf("oddsX",e.target.value)}/></div>
+          <div><label className="label">Away (2)</label><input className="input" placeholder="4.20" value={form.odds2} onChange={e=>sf("odds2",e.target.value)}/></div>
+        </div>
+      </div>
+
+      {/* Bet Types */}
+      <div className="card">
+        <div className="card-title">Bet Types</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {BET_TYPES.map(bt=>(
+            <div key={bt} className={`pill ${form.betTypes.includes(bt)?"active":""}`} onClick={()=>toggleBetType(bt)}>{bt}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* Extra Context */}
+      <div className="card">
+        <label className="label">Extra Context</label>
+        <textarea className="input" style={{minHeight:60,resize:"vertical",display:"block"}}
+          placeholder="Injuries, weather, motivation, cup game..." value={form.extraContext}
+          onChange={e=>sf("extraContext",e.target.value)}/>
+      </div>
+
+      {error && <div className="error-box" style={{marginBottom:14}}>{error}</div>}
+
+      <button className="analyze-btn" onClick={handleAnalyze} disabled={loading}>
+        {loading ? <span><span className="spin">⟳</span> ANALYZING...</span> : `⚡ ANALYZE — GHS ${PRICE}`}
+      </button>
+
+      {/* RESULTS */}
+      {result && (
+        <div style={{marginTop:20}} className="slide-up">
+
+          {/* Verdict Banner */}
+          <div className="verdict-banner" style={{background:result.verdictBg, border:`1px solid ${result.verdictColor}44`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
               <div>
-                <label style={labelStyle}>H2H Notes</label>
-                <input style={inputStyle} placeholder="e.g. Home won last 3, avg 2.8 goals" value={form.h2h}
-                  onChange={e => setForm(f => ({ ...f, h2h: e.target.value }))} />
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:11,letterSpacing:2,color:"#666",marginBottom:4,textTransform:"uppercase"}}>{form.league} · VERDICT</div>
+                <div className="verdict-label" style={{color:result.verdictColor}}>{result.verdict}</div>
+                <div style={{fontSize:13,color:"#888",marginTop:4}}>{form.homeTeam} vs {form.awayTeam}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:40,color:result.verdictColor,lineHeight:1}}>{result.confidence}%</div>
+                <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase"}}>Confidence</div>
               </div>
             </div>
-
-            {/* Odds */}
-            <div style={card}>
-              <div style={sectionTitle("#ffd700")}>
-                <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block", borderRadius: 2 }} />
-                Market Odds
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                {[["Home Win (1)", "odds1", "1.85"], ["Draw (X)", "oddsX", "3.40"], ["Away Win (2)", "odds2", "4.20"]].map(([label, key, ph]) => (
-                  <div key={key}>
-                    <label style={labelStyle}>{label}</label>
-                    <input style={inputStyle} placeholder={ph} value={form[key]}
-                      onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
-                  </div>
-                ))}
-              </div>
+            <div className="confidence-bar-wrap">
+              <div className="confidence-bar" style={{width:`${result.confidence}%`,background:result.verdictColor}}/>
             </div>
-
-            {/* Bet Types */}
-            <div style={card}>
-              <div style={sectionTitle("#ff4d6d")}>
-                <span style={{ width: 2, height: 14, background: "#ff4d6d", display: "inline-block", borderRadius: 2 }} />
-                Bet Types
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {BET_TYPES.map(bt => (
-                  <button key={bt} onClick={() => toggleBetType(bt)} style={{
-                    background: form.betTypes.includes(bt) ? "#4d9eff22" : "#111",
-                    border: form.betTypes.includes(bt) ? "1px solid #4d9eff" : "1px solid #1a1a2e",
-                    color: form.betTypes.includes(bt) ? "#4d9eff" : "#555",
-                    padding: "7px 12px", borderRadius: 5, fontSize: 11, cursor: "pointer",
-                    fontFamily: "'Space Mono', monospace", transition: "all 0.2s"
-                  }}>{bt}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Extra Context */}
-            <div style={card}>
-              <label style={labelStyle}>Extra Context (injuries, weather, motivation...)</label>
-              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical", display: "block" }}
-                placeholder="e.g. Home striker injured, away team needs win for top 4..."
-                value={form.extraContext}
-                onChange={e => setForm(f => ({ ...f, extraContext: e.target.value }))} />
-            </div>
-
-            {error && (
-              <div style={{
-                background: "#ff4d6d22", border: "1px solid #ff4d6d44",
-                borderRadius: 8, padding: "12px 16px", color: "#ff4d6d",
-                fontSize: 12, marginBottom: 16
-              }}>{error}</div>
-            )}
-
-            {/* CTA Button */}
-            <button onClick={handleAnalyzeClick} disabled={loading} style={{
-              width: "100%", padding: "16px",
-              background: loading ? "#111" : "linear-gradient(135deg, #1a3a8f, #4d9eff)",
-              border: loading ? "1px solid #1a1a2e" : "none",
-              borderRadius: 10, color: loading ? "#444" : "#fff",
-              fontSize: 13, fontWeight: 700, fontFamily: "'Space Mono', monospace",
-              letterSpacing: 2, cursor: loading ? "default" : "pointer",
-              textTransform: "uppercase", transition: "all 0.3s",
-              boxShadow: loading ? "none" : "0 0 30px #4d9eff33"
-            }}>
-              {loading
-                ? <span><span className="spin">⟳</span>  ANALYZING MATCH...</span>
-                : "🧠  ANALYZE FOR GHS 10"}
-            </button>
-
-            {/* Results */}
-            {result && (
-              <div style={{ marginTop: 24 }} className="fade-in">
-
-                {/* Verdict */}
-                <div style={{
-                  background: "linear-gradient(135deg, #0d0d1a, #0a1628)",
-                  border: `1px solid ${verdictColor[result.verdict] || "#1a2a4a"}44`,
-                  borderRadius: 12, padding: 22, marginBottom: 14
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#444", letterSpacing: 1.5, marginBottom: 4 }}>{form.league.toUpperCase()}</div>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 900 }}>
-                        {form.homeTeam} <span style={{ color: "#222" }}>vs</span> {form.awayTeam}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 10, color: "#444", marginBottom: 4 }}>AI VERDICT</div>
-                      <div style={{
-                        fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 900,
-                        color: verdictColor[result.verdict] || "#fff"
-                      }}>{result.verdict?.replace(/_/g, " ")}</div>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 16, padding: 14, background: "#07071180", borderRadius: 8, fontSize: 12, color: "#999", lineHeight: 1.8 }}>
-                    {result.summary}
-                  </div>
-                  <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Badge label={`Risk: ${result.riskLevel}`} color={riskColor[result.riskLevel] + "22"} textColor={riskColor[result.riskLevel]} />
-                    <Badge label={`Stake: ${result.stakeAdvice}`} color="#ffd70022" textColor="#ffd700" />
-                  </div>
-                </div>
-
-                {/* Key Factors */}
-                {result.keyFactors?.length > 0 && (
-                  <div style={card}>
-                    <div style={sectionTitle("#ffd700")}>
-                      <span style={{ width: 2, height: 14, background: "#ffd700", display: "inline-block", borderRadius: 2 }} />
-                      Key Factors
-                    </div>
-                    {result.keyFactors.map((f, i) => (
-                      <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, fontSize: 12, color: "#bbb" }}>
-                        <span style={{ color: "#ffd700" }}>→</span> {f}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Bet Cards */}
-                {result.bets?.map((bet, i) => (
-                  <div key={i} className="fade-in" style={{
-                    background: "#0d0d1a",
-                    border: `1px solid ${valueColor[bet.value]}33`,
-                    borderRadius: 12, padding: 20, marginBottom: 12
-                  }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#444", letterSpacing: 1, marginBottom: 3 }}>{bet.type?.toUpperCase()}</div>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 900, color: "#e0e0ff" }}>{bet.pick}</div>
-                      </div>
-                      <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
-                        <Badge label={`${bet.value} VALUE`} color={valueColor[bet.value] + "22"} textColor={valueColor[bet.value]} />
-                        {bet.odds && <Badge label={`Min ${bet.odds}`} color="#111" textColor="#555" />}
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 12, color: "#777", lineHeight: 1.8, marginBottom: 10 }}>{bet.reasoning}</div>
-                    <ConfidenceMeter value={bet.confidence} />
-                  </div>
-                ))}
-
-                {/* Powered by */}
-                <div style={{ textAlign: "center", marginTop: 20, marginBottom: 8 }}>
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    background: "#0d0d1a", border: "1px solid #1a1a2e",
-                    borderRadius: 20, padding: "6px 14px"
-                  }}>
-                    <span style={{ fontSize: 12 }}>🧠</span>
-                    <span style={{ fontSize: 10, color: "#333", letterSpacing: 1 }}>POWERED BY BETMIND AI</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ textAlign: "center", marginTop: 28, marginBottom: 16, fontSize: 10, color: "#222", lineHeight: 2 }}>
-              FOR ANALYTICAL PURPOSES ONLY · BET RESPONSIBLY<br />
-              © 2024 BETMIND AI · ALL RIGHTS RESERVED
+            <div style={{marginTop:14,fontSize:13,color:"#999",lineHeight:1.7}}>{result.summary}</div>
+            <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
+              <span className={`badge ${result.risk==="LOW"?"badge-high":result.risk==="MEDIUM"?"badge-med":"badge-avoid"}`}>Risk: {result.risk}</span>
+              <span className="badge badge-med">Stake: {result.stakeAdvice}</span>
             </div>
           </div>
-        </div>
-      );
-    }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<BetMindAI />);
-  </script>
+          {/* Key Factors */}
+          <div className="card">
+            <div className="card-title">Key Factors</div>
+            {result.factors.map((f,i)=>(
+              <div key={i} style={{display:"flex",gap:10,marginBottom:8,fontSize:14,color:"#bbb"}}>
+                <span style={{color:"var(--red)",fontWeight:700}}>→</span>{f}
+              </div>
+            ))}
+          </div>
+
+          {/* Bet Cards */}
+          {result.bets.map((bet,i)=>(
+            <div key={i} className="bet-card slide-up" style={{borderLeftColor:bet.value==="HIGH"?"var(--green)":bet.value==="MEDIUM"?"var(--yellow)":"#333"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:10}}>
+                <div>
+                  <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:11,color:"#555",letterSpacing:1.5,textTransform:"uppercase",marginBottom:3}}>{bet.type}</div>
+                  <div className="bet-pick">{bet.pick}</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+                  <span className={`badge ${valClass(bet.value)}`}>{bet.value} VALUE</span>
+                  <span className="tag">Min {bet.odds}</span>
+                </div>
+              </div>
+              <div style={{fontSize:13,color:"#777",lineHeight:1.7,marginBottom:12}}>{bet.reasoning}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{flex:1,marginRight:12}}>
+                  <div style={{height:4,background:"#1a1a1a",borderRadius:2,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${bet.confidence}%`,background:confColor(bet.confidence),borderRadius:2,transition:"width 1s ease"}}/>
+                  </div>
+                  <div style={{fontSize:11,color:confColor(bet.confidence),fontWeight:700,marginTop:4,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:1}}>{bet.confidence}% CONFIDENCE</div>
+                </div>
+                <button
+                  className={`add-slip-btn ${addedBets[i]?"added":""}`}
+                  onClick={()=>!addedBets[i]&&addToSlip(bet,i)}
+                >
+                  {addedBets[i] ? "✓ ADDED" : "+ ADD TO SLIP"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>}
+
+    {tab === "history" && <>
+      {history.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📋</div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:700,letterSpacing:1}}>NO ANALYSES YET</div>
+          <div style={{fontSize:13,color:"#555",marginTop:8}}>Run your first match analysis to see history here</div>
+        </div>
+      ) : history.map((h,i)=>(
+        <div key={i} className="history-item">
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase"}}>{h.league} · {h.date}</div>
+            <span className="tag">{h.confidence}% CONF</span>
+          </div>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:20,letterSpacing:1,marginBottom:6}}>{h.match}</div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,fontWeight:700,color:"var(--red)",letterSpacing:1}}>{h.verdict}</div>
+        </div>
+      ))}
+    </>}
+  </div>
+
+  {/* BET SLIP PANEL */}
+  {showSlip && (
+    <div className="slip-panel">
+      <div className="slip-header">
+        <div className="slip-title">🎫 BET SLIP ({slip.length})</div>
+        <button onClick={()=>setShowSlip(false)} style={{background:"none",border:"1px solid #333",borderRadius:6,color:"#888",padding:"4px 12px",cursor:"pointer",fontSize:13}}>CLOSE</button>
+      </div>
+      {slip.length === 0 ? (
+        <div className="empty-state" style={{padding:"40px 20px"}}>
+          <div style={{fontSize:32,marginBottom:8}}>🎫</div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,color:"#555"}}>No picks added yet</div>
+          <div style={{fontSize:12,color:"#333",marginTop:4}}>Analyze a match and add picks</div>
+        </div>
+      ) : <>
+        {slip.map(item=>(
+          <div key={item.id} className="slip-item">
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>{item.match}</div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:900}}>{item.pick}</div>
+              <div style={{fontSize:11,color:"#555",marginTop:2}}>{item.type} · Min {item.odds}</div>
+            </div>
+            <button className="remove-btn" onClick={()=>removeFromSlip(item.id)}>✕</button>
+          </div>
+        ))}
+        <div className="slip-footer">
+          <div className="total-odds">
+            <div>
+              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",fontFamily:"'Barlow Condensed',sans-serif"}}>Combined Odds</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,color:"var(--yellow)"}}>{totalOdds}x</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",fontFamily:"'Barlow Condensed',sans-serif"}}>Picks</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28}}>{slip.length}</div>
+            </div>
+          </div>
+          <button className="share-btn" onClick={()=>{
+            const text = "🎫 MY BET SLIP\n" + slip.map(s=>`• ${s.match}\n  ${s.pick} @ ${s.odds}`).join("\n") + `\n\nCombined Odds: ${totalOdds}x\n\nAnalyzed by BetMind AI`;
+            if (navigator.share) navigator.share({title:"BetMind AI Slip",text});
+            else { navigator.clipboard?.writeText(text); alert("Slip copied to clipboard!"); }
+          }}>📤 SHARE SLIP</button>
+          <button className="clear-btn" onClick={()=>setSlip([])}>CLEAR ALL PICKS</button>
+        </div>
+      </>}
+    </div>
+  )}
+
+  {/* PAYWALL */}
+  {showPaywall && (
+    <Paywall
+      matchLabel={`${form.homeTeam} vs ${form.awayTeam}`}
+      onSuccess={runAnalysis}
+      onClose={()=>setShowPaywall(false)}
+    />
+  )}
+</div>
+```
+
+);
+}
+
+ReactDOM.createRoot(document.getElementById(“root”)).render(<App/>);
+</script>
 
 </body>
 </html>
